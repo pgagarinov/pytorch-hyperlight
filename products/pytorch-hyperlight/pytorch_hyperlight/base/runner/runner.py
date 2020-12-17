@@ -1,0 +1,650 @@
+import os
+from functools import partial
+###
+import pytorch_lightning as pl
+from ray import tune
+#
+from pytorch_lightning.callbacks import (
+    LearningRateMonitor,
+    ModelCheckpoint,
+    ProgressBar,
+)
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.utilities.cloud_io import load as pl_load
+
+###
+from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
+    TuneReportCheckpointCallback,
+)
+from tqdm.autonotebook import tqdm
+
+#
+import pandas as pd
+from tabulate import tabulate
+#
+from pytorch_hyperlight.base.runner.raytune_runner import run_tune_experiment_asha_hyperopt, tune_init
+from pytorch_hyperlight.base.integrations.logging.wandb.wandb_logger import WandBIntegrator
+from pytorch_hyperlight.base.utils.experiment_trial_namer import ExperimentTrialNamer
+
+
+class LitModuleBuilder:
+    def __init__(self, model_class):
+        self.__model_class = model_class
+
+    def load_from_checkpoint(self, checkpoint_path, **kwargs):
+        (
+            lmodule,
+            last_epoch,
+            _,
+        ) = LitModuleBuilder.__load_lmodule_from_checkpoint_with_extra_details(
+            self.__model_class, checkpoint_path, **kwargs
+        )
+        return lmodule, last_epoch
+
+    def create(self, hparams):
+        lmodule = self.__model_class(hparams=hparams)
+        return lmodule
+
+    # noinspection PyProtectedMember
+    @staticmethod
+    def __load_lmodule_from_checkpoint_with_extra_details(
+        model_class, checkpoint_path, **kwargs
+    ):
+        """
+        We use this custom function instead of the built-in `load_from_checkpoint` function
+        from PyTorch Lightning to make it possible to load best_epoch, not just the best model
+        """
+        ckpt = pl_load(
+            checkpoint_path,
+            map_location=lambda storage, loc: storage,
+        )
+        epoch = ckpt["epoch"]
+        lmodule = model_class._load_model_state(ckpt, **kwargs)
+        #
+        return lmodule, epoch, ckpt
+
+
+class MetricDictUtils:
+    @staticmethod
+    def strip_tensors(metrics_dict):
+        return {k: v.cpu().item() for k, v in metrics_dict.items()}
+
+    @staticmethod
+    def filter_by_suffix(metrics_dict, suffix):
+        res_metric_dict = {k: v for k, v in metrics_dict.items() if k.endswith(suffix)}
+        return res_metric_dict
+
+    @staticmethod
+    def remove_suffix(metrics_dict, suffix):
+        res_metric_dict = {k.replace(suffix, ''): v for k, v in metrics_dict.items()}
+        return res_metric_dict
+
+    @staticmethod
+    def change_prefix(metrics_dict, from_prefix, to_prefix):
+        res_metric_dict = {
+            k.replace(from_prefix, to_prefix) if k.startswith(from_prefix) else k: v
+            for k, v in metrics_dict.items()
+        }
+        return res_metric_dict
+
+    @staticmethod
+    def round_floats(metrics_dict, n_digits_after_dot):
+        metrics_dict = {
+            k: round(v, n_digits_after_dot) if isinstance(v, float) else v
+            for k, v in metrics_dict.items()
+        }
+        return metrics_dict
+
+
+class LoggingProgressBar(ProgressBar):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def __default_name_metric_pretty(stage, metric_name):
+        # stage can be 'train', 'validation' and 'test'
+        return metric_name
+
+    @staticmethod
+    def __default_name_stage_pretty(stage):
+        # stage can be 'train', 'validation' and 'test'
+        if stage == "train":
+            stage_pretty = "Tr/Val"
+        elif stage == "validation":
+            stage_pretty = "Val"
+        elif stage == "test":
+            stage_pretty = "Tst"
+        else:
+            raise NameError
+        return stage_pretty
+
+    def __init__(
+        self,
+        *args,
+        f_name_stage_pretty=None,
+        f_name_metric_pretty=None,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+
+        if not f_name_stage_pretty:
+            f_name_stage_pretty = LoggingProgressBar.__default_name_stage_pretty
+        if not f_name_metric_pretty:
+            f_name_metric_pretty = LoggingProgressBar.__default_name_metric_pretty
+
+        self.__f_name_stage_pretty = f_name_stage_pretty
+        self.__f_name_metric_pretty = f_name_metric_pretty
+
+    def set_name_stage_pretty(self, f_name_stage_pretty):
+        self.__f_name_stage_pretty = f_name_stage_pretty
+
+    def set_name_metric_pretty(self, f_name_metric_pretty):
+        self.__f_name_metric_pretty = f_name_metric_pretty
+
+    def get_name_stage_pretty(self):
+        return self.__f_name_stage_pretty
+
+    def get_name_metric_pretty(self):
+        return self.__f_name_metric_pretty
+
+    @staticmethod
+    def __filter_metrics(metrics_dict):
+        N_DIGITS_AFTER_DOT = 4
+
+        metrics_dict = MetricDictUtils.filter_by_suffix(metrics_dict, "_epoch")
+        metrics_dict = MetricDictUtils.remove_suffix(metrics_dict, "_epoch")
+        metrics_dict = MetricDictUtils.round_floats(metrics_dict, N_DIGITS_AFTER_DOT)
+        return metrics_dict
+
+    def init_train_tqdm(self):
+        # STAGE_NAME = "train"
+        bar = super().init_train_tqdm()
+        bar.leave = False
+        return bar
+
+    def init_test_tqdm(self):
+        STAGE_NAME = "test"
+        bar = super().init_test_tqdm()
+        bar.leave = False
+        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
+        return bar
+
+    def init_validation_tqdm(self):
+        STAGE_NAME = "validation"
+        bar = super().init_validation_tqdm()
+        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
+        return bar
+
+    @staticmethod
+    def __disp_dict(metrics_dict, epoch, stage_name):
+        # sort metric names in alphabetical order from the tail
+        sorted_metric_list = [e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])]
+        #
+        metrics_df = pd.DataFrame(metrics_dict, index=[epoch], columns=sorted_metric_list)
+        metrics_df.index.name = stage_name
+        metrics_table_str = tabulate(metrics_df, headers='keys', tablefmt='pipe')
+        tqdm.write(metrics_table_str)
+
+    def __log(self, stage, trainer):
+        metrics_dict = self.__filter_metrics(trainer.progress_bar_dict)
+        metrics_dict = {
+            self.__f_name_metric_pretty(stage, k): v for k, v in metrics_dict.items()
+        }
+        stage_name_pretty = self.__f_name_stage_pretty(stage)
+        epoch = trainer.current_epoch
+        self.__disp_dict(metrics_dict, epoch, stage_name_pretty)
+
+    def on_sanity_check_end(self, trainer, pl_module):
+        pass
+
+    def on_train_epoch_end(self, trainer, pl_module, outputs):
+        STAGE_NAME = "train"
+        super().on_train_epoch_end(trainer, pl_module, outputs)
+        self.main_progress_bar.close()
+        if not trainer.running_sanity_check:
+            self.__log(STAGE_NAME, trainer)
+        self.main_progress_bar = self.init_train_tqdm()
+
+    def on_validation_epoch_end(self, trainer, pl_module):
+        pass
+
+    def on_test_epoch_end(self, trainer, pl_module):
+        STAGE_NAME = "test"
+        super().on_test_epoch_end(trainer, pl_module)
+        if not trainer.running_sanity_check:
+            self.__log(STAGE_NAME, trainer)
+
+
+class Runner:
+    def __init__(
+        self,
+        lmodule_builder,
+        f_configure_dataloaders,
+        f_set_seed,
+        pl_callbacks=None,
+        pl_loggers=None,
+        is_debug=False,
+        experiment_id=None
+    ):
+
+        if pl_callbacks is None:
+            pl_callbacks = []
+        if pl_loggers is None:
+            pl_loggers = []
+        self.__experiment_id = experiment_id
+        #
+        self.wandb_integrator = WandBIntegrator(self.__experiment_id)
+        #
+        pl_loggers = self.__process_pl_loggers_hook(pl_loggers)
+        self.__pl_loggers = pl_loggers
+        #
+        self.__raytune_loggers = []
+        self.__raytune_loggers = self.__process_raytune_loggers_hook(self.__raytune_loggers)
+        #
+        self.__lmodule_builder = lmodule_builder
+        self.__pl_callbacks = pl_callbacks
+        self.__f_configure_dataloaders = f_configure_dataloaders
+        self.__f_set_seed = f_set_seed
+
+        self.__is_debug = is_debug
+
+    def __process_pl_loggers_hook(self, pl_loggers):
+        pl_loggers.extend(self.wandb_integrator.get_pl_loggers())
+        return pl_loggers
+
+    def __process_search_space_hook(self, search_space_config):
+        search_space_config = self.wandb_integrator.configure_raytune(search_space_config)
+        return search_space_config
+
+    def __process_raytune_loggers_hook(self, raytune_loggers):
+        raytune_loggers = raytune_loggers.extend(self.wandb_integrator.get_raytune_loggers())
+        return raytune_loggers
+
+    def __set_seed(self):
+        self.__f_set_seed()
+
+    def __get_dataloaders(self, batch_size, n_workers):
+        return self.__f_configure_dataloaders(batch_size, n_workers=n_workers)
+
+    def __create_lmodule(self, hparams):
+        return self.__lmodule_builder.create(hparams)
+
+    def __load_lmodule_from_checkpoint(self, checkpoint_path, **kwargs):
+        return self.__lmodule_builder.load_from_checkpoint(checkpoint_path, **kwargs)
+
+    def __create_default_trainer(self):
+
+        pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
+
+        trainer = pl.Trainer(
+            gpus=1,
+            gradient_clip_val=0,
+            deterministic=True,
+            callbacks=pl_callbacks,
+            logger=self.__pl_loggers,
+        )
+        return trainer, lprogress_bar_callback
+
+    def __get_pl_callbacks_extended(self):
+        pl_callbacks = self.__pl_callbacks.copy()
+        lprogress_bar_callback = LoggingProgressBar()
+        pl_callbacks.append(lprogress_bar_callback)
+        return pl_callbacks, lprogress_bar_callback
+
+    def run_single_trial(self, config, extra_config):
+
+        pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
+
+        extra_config = self.__add_experiment_id_to_dict(extra_config)
+
+        train_result = self.__run_in_main_process(
+            config,
+            extra_config=extra_config,
+            pl_callbacks=pl_callbacks,
+            pl_loggers=self.__pl_loggers,
+        )
+        #
+        # we do not need the last model state
+        #
+        del train_result["lmodule"]
+
+        (lmodule_best, best_epoch) = self.__load_lmodule_from_checkpoint(
+            train_result["trainer"].checkpoint_callback.best_model_path
+        )
+        metrics_dict = self.__get_metrics(train_result["trainer"])
+
+        val_loader_name = extra_config["val_loader_name"]
+        if val_loader_name:
+            reval_metrics_dict = self.__revalidate(
+                train_result["trainer"],
+                lmodule_best,
+                train_result["dataloaders_dict"][val_loader_name],
+                lprogress_bar_callback,
+            )
+            metrics_dict = {**metrics_dict, **reval_metrics_dict}
+        #
+        return {
+            "lmodule_best": lmodule_best,
+            "best_epoch": best_epoch,
+            "metrics": metrics_dict,
+            "trainer": train_result["trainer"],
+        }
+
+    def __run_in_main_process(self, config, **kwargs):
+        """
+        Similar wrapper but this time for running single experiments in manual mode
+        """
+        return self.__train_with_checkpoint(
+            config,
+            self.__f_configure_dataloaders,
+            self.__lmodule_builder,
+            self.__f_set_seed,
+            checkpoint_dir=None,
+            from_ray=False,
+            is_debug=self.__is_debug,
+            **kwargs,
+        )
+
+    def __add_experiment_id_to_dict(self, some_dict):
+        some_dict = some_dict.copy()
+        some_dict['experiment_id'] = self.__experiment_id + '_' + ExperimentTrialNamer.get_group_name()
+        return some_dict
+
+    def run_hyper_opt(
+        self,
+        search_space_config,
+        tune_config,
+        f_tune_init=tune_init,
+        f_run_tune_experiment=run_tune_experiment_asha_hyperopt,
+    ):
+        f_tune_init()
+        #
+        tune_config = self.__add_experiment_id_to_dict(tune_config)
+        #
+        search_space_config = self.__process_search_space_hook(search_space_config)
+        #
+        f_run_tune_experiment = partial(
+            f_run_tune_experiment, raytune_loggers=self.__raytune_loggers
+        )
+        #
+
+        f_trainer = tune.with_parameters(
+            self.__train_with_checkpoint_drop_output,
+            f_configure_dataloaders=self.__f_configure_dataloaders,
+            lmodule_builder=self.__lmodule_builder,
+            f_set_seed=self.__f_set_seed,
+            extra_config=tune_config,
+            pl_callbacks=self.__pl_callbacks,
+            pl_loggers=self.__pl_loggers,
+            is_debug=self.__is_debug,
+        )
+
+        analysis = f_run_tune_experiment(
+            f_trainer,
+            search_space_config,
+            tune_config,
+        )
+
+        loaders_dict = self.__get_dataloaders(
+            tune_config["batch_size_main"], tune_config["cpu_per_trial"]
+        )
+
+        checkpoint_path = os.path.join(analysis.best_checkpoint, "checkpoint.ckpt")
+
+        lmodule_best, best_epoch = self.__load_lmodule_from_checkpoint(checkpoint_path)
+
+        trainer, lprogress_bar_callback = self.__create_default_trainer()
+        #
+        val_loader_name = tune_config["val_loader_name"]
+        if val_loader_name:
+            reval_metrics = self.__revalidate(
+                trainer,
+                lmodule_best,
+                loaders_dict[val_loader_name],
+                lprogress_bar_callback,
+            )
+        else:
+            reval_metrics = {}
+
+        return {
+            "lmodule_best": lmodule_best,
+            "best_epoch": best_epoch,
+            "metrics": reval_metrics,
+            "analysis": analysis,
+        }
+
+    def __revalidate(
+        self, trainer, lmodule_best, val_dataloader, lprogress_bar_callback
+    ):
+        def __test_is_revalidate_name_metric_pretty(stage, metric_name):
+            # stage can be 'train', 'validation' and 'test'
+            assert stage == "test"
+            metric_name = metric_name.replace("test_", "reval_")
+
+            return metric_name
+
+        def __test_is_revalidate_name_stage_pretty(stage):
+            # stage can be 'train', 'validation' and 'test'
+            assert stage == "test"
+            return "Reval"
+
+        #
+        prev_name_metric_pretty = lprogress_bar_callback.get_name_metric_pretty()
+        prev_name_stage_pretty = lprogress_bar_callback.get_name_stage_pretty()
+        #
+        lprogress_bar_callback.set_name_metric_pretty(
+            __test_is_revalidate_name_metric_pretty
+        )
+        lprogress_bar_callback.set_name_stage_pretty(
+            __test_is_revalidate_name_stage_pretty
+        )
+
+        self.__set_seed()
+        val_result = trainer.test(
+            lmodule_best, test_dataloaders=val_dataloader, verbose=False
+        )
+
+        lprogress_bar_callback.set_name_metric_pretty(prev_name_metric_pretty)
+        lprogress_bar_callback.set_name_stage_pretty(prev_name_stage_pretty)
+
+        reval_metrics_dict = MetricDictUtils.filter_by_suffix(val_result[0], "_epoch")
+        reval_metrics_dict = MetricDictUtils.change_prefix(
+            reval_metrics_dict, "test_", "reval_"
+        )
+        return reval_metrics_dict
+
+    @staticmethod
+    def __get_metrics(trainer):
+        metrics_dict = MetricDictUtils.strip_tensors(trainer.callback_metrics)
+        metrics_dict = MetricDictUtils.filter_by_suffix(metrics_dict, "_epoch")
+        return metrics_dict
+
+    @staticmethod
+    def __create_trainer(
+        config,
+        extra_config,
+        from_ray,
+        is_debug=False,
+        pl_callbacks=None,
+        pl_loggers=None,
+    ):
+        if pl_callbacks is None:
+            pl_callbacks = []
+        if pl_loggers is None:
+            pl_loggers = []
+        #
+        config = config.copy()
+        #
+        if is_debug:
+            TRAINER_KWARG_DICT = {
+                "max_epochs": 3,
+                "limit_train_batches": 10,
+                "limit_val_batches": 5,
+                "limit_test_batches": 5,
+            }
+        else:
+            TRAINER_KWARG_DICT = {"max_epochs": config["max_epochs"]}
+
+        #
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        pl_callbacks.append(lr_monitor)
+        #
+        if extra_config["ptl_trainer_patience"]:
+            es_callback = EarlyStopping(
+                monitor=extra_config["metric_to_optimize"],
+                patience=extra_config["ptl_trainer_patience"],
+                verbose=True,
+                mode=extra_config["metric_opt_mode"],
+                min_delta=0,
+            )
+            pl_callbacks.append(es_callback)
+        #
+        if from_ray:
+            metric_list = extra_config["ray_metrics_to_show"]
+            tune_val_callback = TuneReportCheckpointCallback(
+                metrics=dict(zip(metric_list, metric_list)),
+                filename="checkpoint.ckpt",
+                on="validation_end",
+            )
+            pl_callbacks.append(tune_val_callback)
+
+            TRAINER_KWARG_DICT["progress_bar_refresh_rate"] = 0
+            TRAINER_KWARG_DICT["checkpoint_callback"] = False
+            TRAINER_KWARG_DICT["weights_summary"] = None
+        else:
+            PTL_CHECKPOINT_PERIOD = 1
+            PTL_CHECKPOINT_SAVE_TOP_K = 3
+            #
+            metric2optimize = extra_config["metric_to_optimize"]
+            checkpoint_callback = ModelCheckpoint(
+                monitor=extra_config["metric_to_optimize"],
+                mode=extra_config["metric_opt_mode"],
+                save_top_k=PTL_CHECKPOINT_SAVE_TOP_K,
+                period=PTL_CHECKPOINT_PERIOD,
+                filename="sample-mnist-{epoch:02d}-{val_loss:.6f}-{metric2optimize:.6f}".replace(
+                    "{metric2optimize", "{" + f"{metric2optimize}"
+                ),
+            )
+            pl_callbacks.append(checkpoint_callback)
+
+        # It is yet to be figured out hot to report training metrics
+        # (currently only validations metrics are reported).
+        # The follwing line leads to errors
+        """
+        metric_list =['train_acc_epoch', 'train_loss_epoch']
+        tune_train_callback = TuneReportCallback(
+            metrics=dict(zip(metric_list, metric_list)),
+            on="train_end",
+        )
+        """
+        #
+        trainer = pl.Trainer(
+            deterministic=True,
+            gpus=extra_config["gpus"],
+            check_val_every_n_epoch=1,
+            # progress_bar_refresh_rate = 0,
+            gradient_clip_val=config["gradient_clip_val"],
+            precision=extra_config["ptl_precision"],
+            callbacks=pl_callbacks,
+            logger=pl_loggers,
+            **TRAINER_KWARG_DICT,
+        )
+
+        return trainer
+
+    @staticmethod
+    def __train_with_checkpoint(
+        config,
+        f_configure_dataloaders,
+        lmodule_builder,
+        f_set_seed,
+        checkpoint_dir=None,
+        from_ray=True,
+        is_debug=False,
+        extra_config=None,
+        pl_callbacks=None,
+        pl_loggers=None,
+    ):
+        """
+        This is a wrapper around PyTorch Lightning Trainer to make PTL and Ray Tune best friends
+        (see https://docs.ray.io/en/master/tune/tutorials/tune-pytorch-lightning.html).
+        The hyper parameter optimization algorithm run by Ray Tune may decide to restore
+        the model from the checkpoint in which case checkpoint_dir is not None.
+        Such situation is possible when Population Based Training in Ray Tune is used.
+        The parameters are as follows:
+
+        - **config** contains a current set of hyperparameter valies
+        - **f_configure_dataloaders** is a function used for generating dataloaders
+        - **checkpoint_dir** points to the checkpoint directory in case Ray Tune expects
+            the model to be restored from the checkpoint
+        - **from_ray**, if False, allows to run this function manually i.e. without Ray Tune.
+            This is used for a single-experiment train-validate cycle.
+            If False, the function is expected by be launched by Ray Tune in automatic
+            mode of hyper-parameters search
+        - **extra_config** contains the experiment parameters (including the technical
+            ones such as number of CPUs per experiment) that are not expected to be tuned
+            as hyper-parameters
+        """
+
+        trainer = Runner.__create_trainer(
+                config,
+                extra_config,
+                from_ray,
+                is_debug=is_debug,
+                pl_callbacks=pl_callbacks,
+                pl_loggers=pl_loggers
+        )
+
+        config = config.copy()
+        #
+        loaders_dict = f_configure_dataloaders(
+            config["batch_size"], n_workers=extra_config["cpu_per_trial"]
+        )
+
+        config["n_train_steps"] = (
+            len(loaders_dict["train_loader"]) * config["max_epochs"]
+        )
+        #
+        if checkpoint_dir:
+            #
+            # Here we restore state of things and plan to continue
+            # training with new hyper-parameters
+            #
+            checkpoint_path = os.path.join(checkpoint_dir, "checkpoint.ckpt")
+
+            lmodule, last_epoch = lmodule_builder.load_from_checkpoint(
+                checkpoint_path, hparams=config
+            )
+
+            trainer.current_epoch = last_epoch
+            #
+        else:
+            #
+            lmodule = lmodule_builder.create(config)
+        #
+        train_loader_name = extra_config["train_loader_name"]
+        val_loader_name = extra_config["val_loader_name"]
+        fit_kwargs_dict = {}
+        if val_loader_name:
+            fit_kwargs_dict["val_dataloaders"] = loaders_dict[val_loader_name]
+        #
+        f_set_seed()
+        #
+        _ = trainer.fit(lmodule, loaders_dict[train_loader_name], **fit_kwargs_dict)
+
+        return {
+            "lmodule": lmodule,
+            "trainer": trainer,
+            "dataloaders_dict": loaders_dict,
+        }
+
+    @staticmethod
+    def __train_with_checkpoint_drop_output(config, *args, **kwargs):
+        """
+        Ray Tune doesn't expect any output arguments from the trainer function (except for
+        the metrics reported back to Ray Tune for the trial selection). Thus this wrapper is
+        implemented to skip the outputs (used when running a single experiment in manual mode).
+        Please note `from_ray=True` which indicates to `train_with_checkpoint` function that
+        function is launched from Ray Tune
+        """
+        _ = Runner.__train_with_checkpoint(
+            config, *args, from_ray=True, **kwargs
+        )

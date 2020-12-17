@@ -1,0 +1,5 @@
+matplotlib==3.3.3
+torchvision==0.8.2
+transformers==4.0.1
+jupyterlab==2.2.9
+jupyter==1.0.0
