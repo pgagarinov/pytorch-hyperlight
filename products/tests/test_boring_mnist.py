@@ -81,7 +81,8 @@ class TestBoringMNIST:
                     batch_size=batch_size,
                     shuffle=SHUFFLE,
                     sampler=SAMPLER,
-                    num_workers=n_workers,
+                    # num_workers=n_workers, # this is commented out to make debugging work in PyCharm
+                    # see https://stackoverflow.com/questions/62341906/pytorch-dataloader-doesnt-work-with-remote-interpreter
                     pin_memory=True,
                 )
             #
@@ -90,7 +91,7 @@ class TestBoringMNIST:
                     result_dict[f"{prefix}_dataset"],
                     batch_size=batch_size,
                     shuffle=False,
-                    num_workers=n_workers,
+                    # num_workers=n_workers,
                     pin_memory=True,
                 )
 
@@ -103,23 +104,22 @@ class TestBoringMNIST:
         class LitMetricsCalc(torch.nn.Module):
             def __init__(self, prefix, num_classes):
                 super(LitMetricsCalc, self).__init__()
-                self.acc = metrics.classification.Accuracy(compute_on_step=True)
+                self.acc = metrics.classification.Accuracy()
                 # compute_on_step=True,
                 self.f1 = metrics.classification.F1(
-                    compute_on_step=True, num_classes=num_classes, average="macro"
+                    num_classes=num_classes, average="macro"
                 )
                 self.rec = metrics.classification.Recall(
-                    compute_on_step=True, num_classes=num_classes, average="macro"
+                    num_classes=num_classes, average="macro"
                 )
                 self.prec = metrics.classification.Precision(
-                    compute_on_step=True, num_classes=num_classes, average="macro"
+                    num_classes=num_classes, average="macro"
                 )
                 self.prefix = prefix
 
             def step(self, logit, target):
                 probs = torch.softmax(logit, dim=1)
                 prefix = self.prefix
-                """
                 self.acc(probs, target)
                 self.f1(probs, target)
                 self.prec(probs, target)
@@ -139,6 +139,7 @@ class TestBoringMNIST:
                     f"{prefix}_prec": self.prec(probs, target),
                     f"{prefix}_rec": self.rec(probs, target),
                 }
+                """
 
         # %%
 

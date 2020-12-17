@@ -1,7 +1,9 @@
+import torch
+
 class MetricDictUtils:
     @staticmethod
     def strip_tensors(metrics_dict):
-        return {k: v.cpu().item() for k, v in metrics_dict.items()}
+        return {k: v.cpu().item() for k, v in metrics_dict.items() if isinstance(v, torch.Tensor)}
 
     @staticmethod
     def filter_by_suffix(metrics_dict, suffix):
