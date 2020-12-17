@@ -7,7 +7,6 @@ from ray import tune
 from pytorch_lightning.callbacks import (
     LearningRateMonitor,
     ModelCheckpoint,
-    ProgressBar,
 )
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.utilities.cloud_io import load as pl_load
@@ -16,15 +15,12 @@ from pytorch_lightning.utilities.cloud_io import load as pl_load
 from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
     TuneReportCheckpointCallback,
 )
-from tqdm.autonotebook import tqdm
-
-#
-import pandas as pd
-from tabulate import tabulate
 #
 from pytorch_hyperlight.base.runner.raytune_runner import run_tune_experiment_asha_hyperopt, tune_init
 from pytorch_hyperlight.base.integrations.logging.wandb.wandb_logger import WandBIntegrator
 from pytorch_hyperlight.base.utils.experiment_trial_namer import ExperimentTrialNamer
+from pytorch_hyperlight.base.callbacks.progress import LoggingProgressBar
+from pytorch_hyperlight.base.utils.metric_dict_utils import MetricDictUtils
 
 
 class LitModuleBuilder:
@@ -64,155 +60,6 @@ class LitModuleBuilder:
         return lmodule, epoch, ckpt
 
 
-class MetricDictUtils:
-    @staticmethod
-    def strip_tensors(metrics_dict):
-        return {k: v.cpu().item() for k, v in metrics_dict.items()}
-
-    @staticmethod
-    def filter_by_suffix(metrics_dict, suffix):
-        res_metric_dict = {k: v for k, v in metrics_dict.items() if k.endswith(suffix)}
-        return res_metric_dict
-
-    @staticmethod
-    def remove_suffix(metrics_dict, suffix):
-        res_metric_dict = {k.replace(suffix, ''): v for k, v in metrics_dict.items()}
-        return res_metric_dict
-
-    @staticmethod
-    def change_prefix(metrics_dict, from_prefix, to_prefix):
-        res_metric_dict = {
-            k.replace(from_prefix, to_prefix) if k.startswith(from_prefix) else k: v
-            for k, v in metrics_dict.items()
-        }
-        return res_metric_dict
-
-    @staticmethod
-    def round_floats(metrics_dict, n_digits_after_dot):
-        metrics_dict = {
-            k: round(v, n_digits_after_dot) if isinstance(v, float) else v
-            for k, v in metrics_dict.items()
-        }
-        return metrics_dict
-
-
-class LoggingProgressBar(ProgressBar):
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def __default_name_metric_pretty(stage, metric_name):
-        # stage can be 'train', 'validation' and 'test'
-        return metric_name
-
-    @staticmethod
-    def __default_name_stage_pretty(stage):
-        # stage can be 'train', 'validation' and 'test'
-        if stage == "train":
-            stage_pretty = "Tr/Val"
-        elif stage == "validation":
-            stage_pretty = "Val"
-        elif stage == "test":
-            stage_pretty = "Tst"
-        else:
-            raise NameError
-        return stage_pretty
-
-    def __init__(
-        self,
-        *args,
-        f_name_stage_pretty=None,
-        f_name_metric_pretty=None,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
-
-        if not f_name_stage_pretty:
-            f_name_stage_pretty = LoggingProgressBar.__default_name_stage_pretty
-        if not f_name_metric_pretty:
-            f_name_metric_pretty = LoggingProgressBar.__default_name_metric_pretty
-
-        self.__f_name_stage_pretty = f_name_stage_pretty
-        self.__f_name_metric_pretty = f_name_metric_pretty
-
-    def set_name_stage_pretty(self, f_name_stage_pretty):
-        self.__f_name_stage_pretty = f_name_stage_pretty
-
-    def set_name_metric_pretty(self, f_name_metric_pretty):
-        self.__f_name_metric_pretty = f_name_metric_pretty
-
-    def get_name_stage_pretty(self):
-        return self.__f_name_stage_pretty
-
-    def get_name_metric_pretty(self):
-        return self.__f_name_metric_pretty
-
-    @staticmethod
-    def __filter_metrics(metrics_dict):
-        N_DIGITS_AFTER_DOT = 4
-
-        metrics_dict = MetricDictUtils.filter_by_suffix(metrics_dict, "_epoch")
-        metrics_dict = MetricDictUtils.remove_suffix(metrics_dict, "_epoch")
-        metrics_dict = MetricDictUtils.round_floats(metrics_dict, N_DIGITS_AFTER_DOT)
-        return metrics_dict
-
-    def init_train_tqdm(self):
-        # STAGE_NAME = "train"
-        bar = super().init_train_tqdm()
-        bar.leave = False
-        return bar
-
-    def init_test_tqdm(self):
-        STAGE_NAME = "test"
-        bar = super().init_test_tqdm()
-        bar.leave = False
-        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
-        return bar
-
-    def init_validation_tqdm(self):
-        STAGE_NAME = "validation"
-        bar = super().init_validation_tqdm()
-        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
-        return bar
-
-    @staticmethod
-    def __disp_dict(metrics_dict, epoch, stage_name):
-        # sort metric names in alphabetical order from the tail
-        sorted_metric_list = [e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])]
-        #
-        metrics_df = pd.DataFrame(metrics_dict, index=[epoch], columns=sorted_metric_list)
-        metrics_df.index.name = stage_name
-        metrics_table_str = tabulate(metrics_df, headers='keys', tablefmt='pipe')
-        tqdm.write(metrics_table_str)
-
-    def __log(self, stage, trainer):
-        metrics_dict = self.__filter_metrics(trainer.progress_bar_dict)
-        metrics_dict = {
-            self.__f_name_metric_pretty(stage, k): v for k, v in metrics_dict.items()
-        }
-        stage_name_pretty = self.__f_name_stage_pretty(stage)
-        epoch = trainer.current_epoch
-        self.__disp_dict(metrics_dict, epoch, stage_name_pretty)
-
-    def on_sanity_check_end(self, trainer, pl_module):
-        pass
-
-    def on_train_epoch_end(self, trainer, pl_module, outputs):
-        STAGE_NAME = "train"
-        super().on_train_epoch_end(trainer, pl_module, outputs)
-        self.main_progress_bar.close()
-        if not trainer.running_sanity_check:
-            self.__log(STAGE_NAME, trainer)
-        self.main_progress_bar = self.init_train_tqdm()
-
-    def on_validation_epoch_end(self, trainer, pl_module):
-        pass
-
-    def on_test_epoch_end(self, trainer, pl_module):
-        STAGE_NAME = "test"
-        super().on_test_epoch_end(trainer, pl_module)
-        if not trainer.running_sanity_check:
-            self.__log(STAGE_NAME, trainer)
-
-
 class Runner:
     def __init__(
         self,
@@ -247,7 +94,7 @@ class Runner:
         self.__is_debug = is_debug
 
     def __process_pl_loggers_hook(self, pl_loggers):
-        pl_loggers.extend(self.wandb_integrator.get_pl_loggers())
+        pl_loggers.copy().extend(self.wandb_integrator.get_pl_loggers())
         return pl_loggers
 
     def __process_search_space_hook(self, search_space_config):
@@ -255,7 +102,7 @@ class Runner:
         return search_space_config
 
     def __process_raytune_loggers_hook(self, raytune_loggers):
-        raytune_loggers = raytune_loggers.extend(self.wandb_integrator.get_raytune_loggers())
+        raytune_loggers = raytune_loggers.copy().extend(self.wandb_integrator.get_raytune_loggers())
         return raytune_loggers
 
     def __set_seed(self):
@@ -269,19 +116,6 @@ class Runner:
 
     def __load_lmodule_from_checkpoint(self, checkpoint_path, **kwargs):
         return self.__lmodule_builder.load_from_checkpoint(checkpoint_path, **kwargs)
-
-    def __create_default_trainer(self):
-
-        pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
-
-        trainer = pl.Trainer(
-            gpus=1,
-            gradient_clip_val=0,
-            deterministic=True,
-            callbacks=pl_callbacks,
-            logger=self.__pl_loggers,
-        )
-        return trainer, lprogress_bar_callback
 
     def __get_pl_callbacks_extended(self):
         pl_callbacks = self.__pl_callbacks.copy()
@@ -391,7 +225,17 @@ class Runner:
 
         lmodule_best, best_epoch = self.__load_lmodule_from_checkpoint(checkpoint_path)
 
-        trainer, lprogress_bar_callback = self.__create_default_trainer()
+        pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
+
+        trainer = self.__create_trainer(
+                analysis.best_config,
+                tune_config,
+                False,
+                is_debug=self.__is_debug,
+                pl_callbacks = pl_callbacks,
+                pl_loggers = self.__pl_loggers
+        )
+
         #
         val_loader_name = tune_config["val_loader_name"]
         if val_loader_name:
