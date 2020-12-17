@@ -1,7 +1,7 @@
 from pytorch_lightning.callbacks import (
     ProgressBar,
 )
-from pytorch_hyperlight.base.utils.metric_dict_utils import MetricDictUtils
+from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 from tabulate import tabulate
 import pandas as pd
 from tqdm.autonotebook import tqdm

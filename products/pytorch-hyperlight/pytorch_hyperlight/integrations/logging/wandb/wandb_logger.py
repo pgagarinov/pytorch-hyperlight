@@ -1,5 +1,5 @@
 from pathlib import Path
-from pytorch_hyperlight.base.utils.experiment_trial_namer import ExperimentTrialNamer
+from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 import logging
 import os
 

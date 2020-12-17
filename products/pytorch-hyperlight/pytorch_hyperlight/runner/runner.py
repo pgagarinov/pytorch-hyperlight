@@ -16,11 +16,11 @@ from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
     TuneReportCheckpointCallback,
 )
 #
-from pytorch_hyperlight.base.runner.raytune_runner import run_tune_experiment_asha_hyperopt, tune_init
-from pytorch_hyperlight.base.integrations.logging.wandb.wandb_logger import WandBIntegrator
-from pytorch_hyperlight.base.utils.experiment_trial_namer import ExperimentTrialNamer
-from pytorch_hyperlight.base.callbacks.progress import LoggingProgressBar
-from pytorch_hyperlight.base.utils.metric_dict_utils import MetricDictUtils
+from pytorch_hyperlight.runner.raytune_runner import run_tune_experiment_asha_hyperopt, tune_init
+from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import WandBIntegrator
+from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
+from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
+from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 
 
 class LitModuleBuilder:
