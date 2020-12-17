@@ -1,4 +1,6 @@
 from datetime import datetime
+
+
 class ExperimentTrialNamer:
     @staticmethod
     def get_group_name():

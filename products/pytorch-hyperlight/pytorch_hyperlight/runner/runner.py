@@ -1,8 +1,10 @@
 import os
 from functools import partial
+
 ###
 import pytorch_lightning as pl
 from ray import tune
+
 #
 from pytorch_lightning.callbacks import (
     LearningRateMonitor,
@@ -15,8 +17,12 @@ from pytorch_lightning.utilities.cloud_io import load as pl_load
 from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
     TuneReportCheckpointCallback,
 )
+
 #
-from pytorch_hyperlight.runner.raytune_runner import run_tune_experiment_asha_hyperopt, tune_init
+from pytorch_hyperlight.runner.raytune_runner import (
+    run_tune_experiment_asha_hyperopt,
+    tune_init,
+)
 from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import WandBIntegrator
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
@@ -69,7 +75,7 @@ class Runner:
         pl_callbacks=None,
         pl_loggers=None,
         is_debug=False,
-        experiment_id=None
+        experiment_id=None,
     ):
 
         if pl_callbacks is None:
@@ -84,7 +90,9 @@ class Runner:
         self.__pl_loggers = pl_loggers
         #
         self.__raytune_loggers = []
-        self.__raytune_loggers = self.__process_raytune_loggers_hook(self.__raytune_loggers)
+        self.__raytune_loggers = self.__process_raytune_loggers_hook(
+            self.__raytune_loggers
+        )
         #
         self.__lmodule_builder = lmodule_builder
         self.__pl_callbacks = pl_callbacks
@@ -98,11 +106,15 @@ class Runner:
         return pl_loggers
 
     def __process_search_space_hook(self, search_space_config):
-        search_space_config = self.wandb_integrator.configure_raytune(search_space_config)
+        search_space_config = self.wandb_integrator.configure_raytune(
+            search_space_config
+        )
         return search_space_config
 
     def __process_raytune_loggers_hook(self, raytune_loggers):
-        raytune_loggers = raytune_loggers.copy().extend(self.wandb_integrator.get_raytune_loggers())
+        raytune_loggers = raytune_loggers.copy().extend(
+            self.wandb_integrator.get_raytune_loggers()
+        )
         return raytune_loggers
 
     def __set_seed(self):
@@ -179,7 +191,9 @@ class Runner:
 
     def __add_experiment_id_to_dict(self, some_dict):
         some_dict = some_dict.copy()
-        some_dict['experiment_id'] = self.__experiment_id + '_' + ExperimentTrialNamer.get_group_name()
+        some_dict["experiment_id"] = (
+            self.__experiment_id + "_" + ExperimentTrialNamer.get_group_name()
+        )
         return some_dict
 
     def run_hyper_opt(
@@ -228,12 +242,12 @@ class Runner:
         pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
 
         trainer = self.__create_trainer(
-                analysis.best_config,
-                tune_config,
-                False,
-                is_debug=self.__is_debug,
-                pl_callbacks = pl_callbacks,
-                pl_loggers = self.__pl_loggers
+            analysis.best_config,
+            tune_config,
+            False,
+            is_debug=self.__is_debug,
+            pl_callbacks=pl_callbacks,
+            pl_loggers=self.__pl_loggers,
         )
 
         #
@@ -371,7 +385,7 @@ class Runner:
 
         # It is yet to be figured out hot to report training metrics
         # (currently only validations metrics are reported).
-        # The follwing line leads to errors
+        # The following line leads to errors
         """
         metric_list =['train_acc_epoch', 'train_loss_epoch']
         tune_train_callback = TuneReportCallback(
@@ -415,7 +429,7 @@ class Runner:
         Such situation is possible when Population Based Training in Ray Tune is used.
         The parameters are as follows:
 
-        - **config** contains a current set of hyperparameter valies
+        - **config** contains a current set of hyperparameter values
         - **f_configure_dataloaders** is a function used for generating dataloaders
         - **checkpoint_dir** points to the checkpoint directory in case Ray Tune expects
             the model to be restored from the checkpoint
@@ -429,12 +443,12 @@ class Runner:
         """
 
         trainer = Runner.__create_trainer(
-                config,
-                extra_config,
-                from_ray,
-                is_debug=is_debug,
-                pl_callbacks=pl_callbacks,
-                pl_loggers=pl_loggers
+            config,
+            extra_config,
+            from_ray,
+            is_debug=is_debug,
+            pl_callbacks=pl_callbacks,
+            pl_loggers=pl_loggers,
         )
 
         config = config.copy()
@@ -489,6 +503,4 @@ class Runner:
         Please note `from_ray=True` which indicates to `train_with_checkpoint` function that
         function is launched from Ray Tune
         """
-        _ = Runner.__train_with_checkpoint(
-            config, *args, from_ray=True, **kwargs
-        )
+        _ = Runner.__train_with_checkpoint(config, *args, from_ray=True, **kwargs)

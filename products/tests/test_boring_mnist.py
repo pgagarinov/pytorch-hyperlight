@@ -4,11 +4,13 @@ import pytorch_hyperlight as pth
 import pytorch_lightning as pl
 import pytorch_lightning.metrics as metrics
 import torch
+# noinspection PyPep8Naming
 import torch.nn.functional as F
 from matplotlib import pyplot as plt
 from matplotlib.font_manager import FontProperties
 from pytorch_lightning import Callback
 from ray import tune
+# noinspection PyProtectedMember
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision.datasets.mnist import MNIST
@@ -64,7 +66,7 @@ class TestBoringMNIST:
             }
 
         # a dedicated function for creating dataloaders
-        # 'full_train_loader' is created along with standard 3 loaderers
+        # 'full_train_loader' is created along with standard 3 loaders
         # for training, validation and testing datasets
         def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
             #
@@ -230,6 +232,7 @@ class TestBoringMNIST:
                 )
                 return loss
 
+            # noinspection PyUnusedLocal
             def __stage_step(self, metric_calc, batch, batch_idx, stage):
                 logits = self.forward_batch(batch)
                 mval_dict = metric_calc.step(logits, batch[1])
@@ -358,7 +361,7 @@ class TestBoringMNIST:
             "loaders_dict": loaders_dict,
         }
 
-    def test_run_single_trial(self, boring_mnist):
+    def test_touch_run_single_trial(self, boring_mnist):
 
         phl_runner = boring_mnist["phl_runner"]
         config = boring_mnist["config"]
@@ -366,7 +369,7 @@ class TestBoringMNIST:
         best_result = phl_runner.run_single_trial(config, tune_config)
         self.touch_check_results(boring_mnist["loaders_dict"], best_result)
 
-    def test_run_hyper_opt(self, boring_mnist):
+    def test_touch_run_hyper_opt(self, boring_mnist):
 
         phl_runner = boring_mnist["phl_runner"]
         search_space_config = boring_mnist["search_space_config"]
@@ -382,7 +385,8 @@ class TestBoringMNIST:
     def touch_check_results(loaders_dict, best_result):
         DEVICE = torch.device("cpu")
 
-        def imshow(inp, title=None, plt_ax=plt, default=False):
+        # noinspection PyUnresolvedReferences
+        def imshow(inp, title=None, plt_ax=plt):
             """Imshow for tensors"""
             inp = inp.numpy().transpose((1, 2, 0))
             mean = np.array([0.485, 0.456, 0.406])
@@ -404,7 +408,9 @@ class TestBoringMNIST:
 
         # %%
 
+        # noinspection PyShadowingNames,PyTypeChecker
         def show_some_predictions(loaders_dict, lmodule):
+            # noinspection PyTypeChecker
             fig, ax = plt.subplots(
                 nrows=3, ncols=3, figsize=(12, 12), sharey=True, sharex=True
             )

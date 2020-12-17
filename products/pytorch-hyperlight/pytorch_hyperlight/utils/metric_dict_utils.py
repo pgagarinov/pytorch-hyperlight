@@ -10,7 +10,7 @@ class MetricDictUtils:
 
     @staticmethod
     def remove_suffix(metrics_dict, suffix):
-        res_metric_dict = {k.replace(suffix, ''): v for k, v in metrics_dict.items()}
+        res_metric_dict = {k.replace(suffix, ""): v for k, v in metrics_dict.items()}
         return res_metric_dict
 
     @staticmethod

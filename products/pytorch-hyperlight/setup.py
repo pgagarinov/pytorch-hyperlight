@@ -1,10 +1,13 @@
 from setuptools import setup, find_packages
+
+# noinspection PyProtectedMember
 from pip._internal.req import parse_requirements
 
 # flake8: noqa
 
 NAME = "pytorch_hyperlight"
 
+# noinspection PyTypeChecker
 install_reqs = parse_requirements("requirements.txt", "req_install_hack")
 reqs = [str(ir.requirement) for ir in install_reqs]
 

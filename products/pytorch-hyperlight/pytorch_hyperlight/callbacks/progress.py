@@ -87,11 +87,15 @@ class LoggingProgressBar(ProgressBar):
     @staticmethod
     def __disp_dict(metrics_dict, epoch, stage_name):
         # sort metric names in alphabetical order from the tail
-        sorted_metric_list = [e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])]
+        sorted_metric_list = [
+            e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])
+        ]
         #
-        metrics_df = pd.DataFrame(metrics_dict, index=[epoch], columns=sorted_metric_list)
+        metrics_df = pd.DataFrame(
+            metrics_dict, index=[epoch], columns=sorted_metric_list
+        )
         metrics_df.index.name = stage_name
-        metrics_table_str = tabulate(metrics_df, headers='keys', tablefmt='pipe')
+        metrics_table_str = tabulate(metrics_df, headers="keys", tablefmt="pipe")
         tqdm.write(metrics_table_str)
 
     def __log(self, stage, trainer):

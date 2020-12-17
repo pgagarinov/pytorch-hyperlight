@@ -3,6 +3,7 @@ from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 import logging
 import os
 
+
 # noinspection PyUnresolvedReferences
 class WandBIntegrator:
     def __init__(self, experiment_id, silent=True):

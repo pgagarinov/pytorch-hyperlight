@@ -5,6 +5,7 @@ from ray.tune.logger import DEFAULT_LOGGERS
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.suggest.hyperopt import HyperOptSearch
 
+
 def tune_init():
     ray.shutdown()
     ray.init(dashboard_host="0.0.0.0", log_to_driver=False)
