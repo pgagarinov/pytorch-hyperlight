@@ -4,12 +4,14 @@ import pytorch_hyperlight as pth
 import pytorch_lightning as pl
 import pytorch_lightning.metrics as metrics
 import torch
+
 # noinspection PyPep8Naming
 import torch.nn.functional as F
 from matplotlib import pyplot as plt
 from matplotlib.font_manager import FontProperties
 from pytorch_lightning import Callback
 from ray import tune
+
 # noinspection PyProtectedMember
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
@@ -21,7 +23,6 @@ import pytest
 
 
 class TestBoringMNIST:
-
     @pytest.fixture
     def boring_mnist(self, request):
         FAST_DEV_RUN = True
@@ -360,7 +361,7 @@ class TestBoringMNIST:
         if not is_val and is_test:
             del tune_config["val_loader_name"]
             tune_config["metric_to_optimize"] = "train_f1_epoch"
-            tune_config["ray_metrics_to_show"] =[
+            tune_config["ray_metrics_to_show"] = [
                 "train_loss_epoch",
                 "train_f1_epoch",
                 "train_acc_epoch",
@@ -370,7 +371,9 @@ class TestBoringMNIST:
             del tune_config["test_loader_name"]
         return tune_config
 
-    @pytest.mark.parametrize("is_val, is_test", [(True,True), (True, False), (False, True), (False, False)])
+    @pytest.mark.parametrize(
+        "is_val, is_test", [(True, True), (True, False), (False, True), (False, False)]
+    )
     def test_touch_run_single_trial(self, boring_mnist, is_val, is_test):
 
         phl_runner = boring_mnist["phl_runner"]
@@ -452,9 +455,9 @@ class TestBoringMNIST:
 
                 predicted_label = MNIST.classes[y_pred]
                 predicted_label = (
-                        predicted_label[: len(predicted_label) // 2]
-                        + "\n"
-                        + predicted_label[len(predicted_label) // 2:]
+                    predicted_label[: len(predicted_label) // 2]
+                    + "\n"
+                    + predicted_label[len(predicted_label) // 2 :]
                 )
                 predicted_text = "{} : {:.0f}%".format(predicted_label, predicted_proba)
 

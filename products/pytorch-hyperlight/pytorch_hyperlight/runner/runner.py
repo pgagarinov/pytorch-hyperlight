@@ -152,9 +152,13 @@ class Runner:
         )
         train_val_metrics_dict = self.__get_metrics(train_result["trainer"])
 
-        reval_test_metrics_dict = self.__revalidate_n_test_if_possible(lmodule_best, 
-            train_result["trainer"], train_result["dataloaders_dict"], extra_config, 
-            lprogress_bar_callback)
+        reval_test_metrics_dict = self.__revalidate_n_test_if_possible(
+            lmodule_best,
+            train_result["trainer"],
+            train_result["dataloaders_dict"],
+            extra_config,
+            lprogress_bar_callback,
+        )
 
         metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
 
@@ -163,6 +167,7 @@ class Runner:
             "best_epoch": best_epoch,
             "metrics": metrics_dict,
             "trainer": train_result["trainer"],
+            "metrics_df": lprogress_bar_callback.get_metrics_df()
         }
 
     def __run_in_main_process(self, lmodule_builder, config, **kwargs):
@@ -246,8 +251,9 @@ class Runner:
         )
 
         #
-        metrics_dict = self.__revalidate_n_test_if_possible(lmodule_best, trainer, 
-            loaders_dict, tune_config, lprogress_bar_callback)
+        metrics_dict = self.__revalidate_n_test_if_possible(
+            lmodule_best, trainer, loaders_dict, tune_config, lprogress_bar_callback
+        )
 
         return {
             "lmodule_best": lmodule_best,
@@ -296,9 +302,7 @@ class Runner:
         )
         return reval_metrics_dict
 
-    def __test(
-        self, trainer, lmodule_best, test_dataloader 
-    ):
+    def __test(self, trainer, lmodule_best, test_dataloader):
         self.__set_seed()
         val_result = trainer.test(
             lmodule_best, test_dataloaders=test_dataloader, verbose=False
@@ -307,7 +311,9 @@ class Runner:
         reval_metrics_dict = MetricDictUtils.filter_by_suffix(val_result[0], "_epoch")
         return reval_metrics_dict
 
-    def __revalidate_n_test_if_possible(self, lmodule_best, trainer, loaders_dict, extra_config, lprogress_bar_callback):
+    def __revalidate_n_test_if_possible(
+        self, lmodule_best, trainer, loaders_dict, extra_config, lprogress_bar_callback
+    ):
         reval_metrics_dict = {}
         if "val_loader_name" in extra_config:
             val_loader_name = extra_config["val_loader_name"]

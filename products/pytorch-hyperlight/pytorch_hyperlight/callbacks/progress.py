@@ -17,7 +17,7 @@ class LoggingProgressBar(ProgressBar):
     @staticmethod
     def __default_name_stage_pretty(stage_list):
         # stage can be 'train', 'val' and 'test'
-        return '/'.join([s.capitalize() for s in stage_list])
+        return "/".join([s.capitalize() for s in stage_list])
 
     def __init__(
         self,
@@ -27,6 +27,8 @@ class LoggingProgressBar(ProgressBar):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
+
+        self.__metrics_df_list = []
 
         if not f_name_stage_pretty:
             f_name_stage_pretty = LoggingProgressBar.__default_name_stage_pretty
@@ -58,26 +60,25 @@ class LoggingProgressBar(ProgressBar):
         return metrics_dict
 
     def init_train_tqdm(self):
-        # STAGE_NAME = "train"
         bar = super().init_train_tqdm()
         bar.leave = False
         return bar
 
     def init_test_tqdm(self):
-        STAGE_NAME = ["test"]
+        STAGE_LIST = ["test"]
         bar = super().init_test_tqdm()
         bar.leave = False
-        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
+        bar.set_description(self.__f_name_stage_pretty(STAGE_LIST))
         return bar
 
     def init_validation_tqdm(self):
-        STAGE_NAME = ["val"]
+        STAGE_LIST = ["val"]
         bar = super().init_validation_tqdm()
-        bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
+        bar.set_description(self.__f_name_stage_pretty(STAGE_LIST))
         return bar
 
     @staticmethod
-    def __disp_dict(metrics_dict, epoch, stage_name):
+    def __metrics_dict2df(metrics_dict, epoch, stage_name):
         # sort metric names in alphabetical order from the tail
         sorted_metric_list = [
             e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])
@@ -87,8 +88,8 @@ class LoggingProgressBar(ProgressBar):
             metrics_dict, index=[epoch], columns=sorted_metric_list
         )
         metrics_df.index.name = stage_name
-        metrics_table_str = tabulate(metrics_df, headers="keys", tablefmt="pipe")
-        tqdm.write(metrics_table_str)
+        #
+        return metrics_df
 
     def __log(self, stage_list, trainer):
         metrics_dict = self.__filter_metrics(trainer.progress_bar_dict)
@@ -98,11 +99,27 @@ class LoggingProgressBar(ProgressBar):
         stage_list = [p for p in stage_list if p in metric_prefix_set]
 
         metrics_dict = {
-            self.__f_name_metric_pretty(stage_list, k): v for k, v in metrics_dict.items()
+            self.__f_name_metric_pretty(stage_list, k): v
+            for k, v in metrics_dict.items()
         }
         stage_name_pretty = self.__f_name_stage_pretty(stage_list)
         epoch = trainer.current_epoch
-        self.__disp_dict(metrics_dict, epoch, stage_name_pretty)
+        #
+        metrics_df = self.__metrics_dict2df(metrics_dict, epoch, stage_name_pretty)
+        self.__metrics_df_list.append(metrics_df)
+        #
+        metrics_table_str = tabulate(metrics_df, headers="keys", tablefmt="pipe")
+        tqdm.write(metrics_table_str)
+
+    def get_metrics_df(self):
+        metrics_df_list = self.__metrics_df_list
+        epoch_list = [e.index[0] for e in metrics_df_list]
+        stage_list = [e.index.name for e in metrics_df_list]
+        df = pd.concat(metrics_df_list)
+        df.insert(loc=0, column='stage', value=stage_list)
+        df.insert(loc=0, column='epoch', value=epoch_list)
+        df.reset_index(inplace=True, drop=True)
+        return df
 
     def on_sanity_check_end(self, trainer, pl_module):
         pass

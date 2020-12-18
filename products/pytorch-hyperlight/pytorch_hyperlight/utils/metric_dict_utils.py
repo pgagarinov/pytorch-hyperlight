@@ -4,11 +4,15 @@ import torch
 class MetricDictUtils:
     @staticmethod
     def get_prefix_set(metrics_dict):
-        return set([k.split('_', 1)[0] for k in metrics_dict.keys()])
+        return set([k.split("_", 1)[0] for k in metrics_dict.keys()])
 
     @staticmethod
     def strip_tensors(metrics_dict):
-        return {k: v.cpu().item() for k, v in metrics_dict.items() if isinstance(v, torch.Tensor)}
+        return {
+            k: v.cpu().item()
+            for k, v in metrics_dict.items()
+            if isinstance(v, torch.Tensor)
+        }
 
     @staticmethod
     def filter_by_suffix(metrics_dict, suffix):
