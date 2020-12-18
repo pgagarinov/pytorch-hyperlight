@@ -6,3 +6,4 @@ __pycache__
 **MNIST
 .pytest_cache
 .coverage*
+**.virtual_documents

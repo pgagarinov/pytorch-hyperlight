@@ -16,10 +16,10 @@ class LoggingProgressBar(ProgressBar):
 
     @staticmethod
     def __default_name_stage_pretty(stage):
-        # stage can be 'train', 'validation' and 'test'
+        # stage can be 'train', 'val' and 'test'
         if stage == "train":
             stage_pretty = "Tr/Val"
-        elif stage == "validation":
+        elif stage == "val":
             stage_pretty = "Val"
         elif stage == "test":
             stage_pretty = "Tst"
@@ -79,7 +79,7 @@ class LoggingProgressBar(ProgressBar):
         return bar
 
     def init_validation_tqdm(self):
-        STAGE_NAME = "validation"
+        STAGE_NAME = "val"
         bar = super().init_validation_tqdm()
         bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
         return bar

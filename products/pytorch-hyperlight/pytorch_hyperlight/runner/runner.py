@@ -155,18 +155,15 @@ class Runner:
         (lmodule_best, best_epoch) = self.__load_lmodule_from_checkpoint(
             train_result["trainer"].checkpoint_callback.best_model_path
         )
-        metrics_dict = self.__get_metrics(train_result["trainer"])
+        train_val_metrics_dict = self.__get_metrics(train_result["trainer"])
 
-        val_loader_name = extra_config["val_loader_name"]
-        if val_loader_name:
-            reval_metrics_dict = self.__revalidate(
-                train_result["trainer"],
-                lmodule_best,
-                train_result["dataloaders_dict"][val_loader_name],
-                lprogress_bar_callback,
-            )
-            metrics_dict = {**metrics_dict, **reval_metrics_dict}
-        #
+
+        reval_test_metrics_dict = self.__revalidate_n_test_if_possible(lmodule_best, 
+            train_result["trainer"], train_result["dataloaders_dict"], extra_config, 
+            lprogress_bar_callback)
+
+        metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
+
         return {
             "lmodule_best": lmodule_best,
             "best_epoch": best_epoch,
@@ -251,21 +248,13 @@ class Runner:
         )
 
         #
-        val_loader_name = tune_config["val_loader_name"]
-        if val_loader_name:
-            reval_metrics = self.__revalidate(
-                trainer,
-                lmodule_best,
-                loaders_dict[val_loader_name],
-                lprogress_bar_callback,
-            )
-        else:
-            reval_metrics = {}
+        metrics_dict = self.__revalidate_n_test_if_possible(lmodule_best, trainer, 
+            loaders_dict, tune_config, lprogress_bar_callback)
 
         return {
             "lmodule_best": lmodule_best,
             "best_epoch": best_epoch,
-            "metrics": reval_metrics,
+            "metrics": metrics_dict,
             "analysis": analysis,
         }
 
@@ -308,6 +297,42 @@ class Runner:
             reval_metrics_dict, "test_", "reval_"
         )
         return reval_metrics_dict
+
+    def __test(
+        self, trainer, lmodule_best, test_dataloader 
+    ):
+        self.__set_seed()
+        val_result = trainer.test(
+            lmodule_best, test_dataloaders=test_dataloader, verbose=False
+        )
+
+        reval_metrics_dict = MetricDictUtils.filter_by_suffix(val_result[0], "_epoch")
+        return reval_metrics_dict
+
+    def __revalidate_n_test_if_possible(self, lmodule_best, trainer, loaders_dict, extra_config, lprogress_bar_callback):
+        val_loader_name = extra_config["val_loader_name"]
+        if val_loader_name:
+            reval_metrics_dict = self.__revalidate(
+                trainer,
+                lmodule_best,
+                loaders_dict[val_loader_name],
+                lprogress_bar_callback,
+            )
+        else:
+            reval_metrics_dict = {}
+
+        test_loader_name = extra_config["test_loader_name"]
+        if test_loader_name:
+            test_metrics_dict = self.__test(
+                trainer,
+                lmodule_best,
+                loaders_dict[test_loader_name],
+            )
+        else:
+            test_metrics_dict = {}
+
+        metrics_dict = {**reval_metrics_dict, **test_metrics_dict}
+        return metrics_dict
 
     @staticmethod
     def __get_metrics(trainer):
