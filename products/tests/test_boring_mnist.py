@@ -1,6 +1,8 @@
 import matplotlib.patches as patches
 import numpy as np
-import pytorch_hyperlight as pth
+from pytorch_hyperlight import Runner
+from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+
 import pytorch_lightning as pl
 import pytorch_lightning.metrics as metrics
 import torch
@@ -20,11 +22,12 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 import warnings
 import pathlib
 import pytest
+import pandas as pd
 
 
 class TestBoringMNIST:
     @pytest.fixture
-    def boring_mnist(self, request):
+    def boring_mnist(self):
         FAST_DEV_RUN = True
         EXPERIMENT_ID = "boring-mnist"
         DATASETS_PATH = pathlib.Path(__file__).parent.absolute()
@@ -69,6 +72,7 @@ class TestBoringMNIST:
         # a dedicated function for creating dataloaders
         # 'full_train_loader' is created along with standard 3 loaders
         # for training, validation and testing datasets
+        # noinspection PyUnusedLocal
         def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
             #
             SHUFFLE = True
@@ -250,11 +254,7 @@ class TestBoringMNIST:
         # %%
 
         N_CLASSES = loaders_dict["n_classes"]
-        MODEL_CLASS = LitBackbone
-
-        # %%
-
-        lmodule_builder = pth.LitModuleBuilder(MODEL_CLASS)
+        LMODULE_CLASS = LitBackbone
 
         # %%
 
@@ -333,7 +333,7 @@ class TestBoringMNIST:
 
         pl_callbacks = [UnfreezeModelTailCallback(CONFIG["unfreeze_epochs"])]
 
-        phl_runner = pth.Runner(
+        phl_runner = Runner(
             configure_dataloaders,
             set_seed,
             pl_callbacks=pl_callbacks,
@@ -342,7 +342,7 @@ class TestBoringMNIST:
         )
 
         return {
-            "lmodule_class": LitBackbone,
+            "lmodule_class": LMODULE_CLASS,
             "configure_dataloaders": configure_dataloaders,
             "set_seed": set_seed,
             "pl_callbacks": pl_callbacks,
@@ -383,7 +383,9 @@ class TestBoringMNIST:
         lmodule_class = boring_mnist["lmodule_class"]
 
         best_result = phl_runner.run_single_trial(lmodule_class, config, tune_config)
-        self.touch_check_results(boring_mnist["loaders_dict"], best_result)
+        #
+        self.__check_single_trial_result(best_result)
+        self.__touch_check_results(boring_mnist["loaders_dict"], best_result)
 
     @pytest.mark.parametrize("is_test", [True, False])
     def test_touch_run_hyper_opt(self, boring_mnist, is_test):
@@ -398,10 +400,11 @@ class TestBoringMNIST:
             search_space_config,
             tune_config,
         )
-        self.touch_check_results(boring_mnist["loaders_dict"], best_result)
+        self.__check_hyper_opt_result(best_result)
+        self.__touch_check_results(boring_mnist["loaders_dict"], best_result)
 
     @staticmethod
-    def touch_check_results(loaders_dict, best_result):
+    def __touch_check_results(loaders_dict, best_result):
         DEVICE = torch.device("cpu")
 
         # noinspection PyUnresolvedReferences
@@ -474,3 +477,26 @@ class TestBoringMNIST:
                 )
 
         show_some_predictions(loaders_dict, best_result["lmodule_best"])
+
+    def __check_single_trial_result(self, result):
+        self.__check_result_common(result)
+        trial_metrics = result["metrics"]
+        assert isinstance(trial_metrics, TrialMetrics)
+        trial_metrics.plot()
+        trainer = result["trainer"]
+        assert isinstance(trainer, pl.Trainer)
+
+    def __check_hyper_opt_result(self, result):
+        self.__check_result_common(result)
+        analysis = result["analysis"]
+        assert isinstance(analysis, tune.ExperimentAnalysis)
+        metrics_last_ser = result["metrics_last"]
+        assert isinstance(metrics_last_ser, pd.Series)
+
+    @staticmethod
+    def __check_result_common(result):
+        lmodule_best = result["lmodule_best"]
+        assert isinstance(lmodule_best, pl.LightningModule)
+        best_epoch = result["best_epoch"]
+        assert isinstance(best_epoch, int)
+

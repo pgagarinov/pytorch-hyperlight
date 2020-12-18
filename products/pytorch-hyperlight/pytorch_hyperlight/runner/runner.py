@@ -27,6 +27,9 @@ from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import WandBInte
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
+from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+#
+import pandas as pd
 
 
 class LitModuleBuilder:
@@ -162,12 +165,13 @@ class Runner:
 
         metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
 
+        trial_metrics = TrialMetrics(pd.Series(metrics_dict), lprogress_bar_callback.get_metrics_df())
+
         return {
             "lmodule_best": lmodule_best,
             "best_epoch": best_epoch,
-            "metrics": metrics_dict,
             "trainer": train_result["trainer"],
-            "metrics_df": lprogress_bar_callback.get_metrics_df()
+            "metrics": trial_metrics,
         }
 
     def __run_in_main_process(self, lmodule_builder, config, **kwargs):
@@ -258,7 +262,7 @@ class Runner:
         return {
             "lmodule_best": lmodule_best,
             "best_epoch": best_epoch,
-            "metrics": metrics_dict,
+            "metrics_last": pd.Series(metrics_dict),
             "analysis": analysis,
         }
 

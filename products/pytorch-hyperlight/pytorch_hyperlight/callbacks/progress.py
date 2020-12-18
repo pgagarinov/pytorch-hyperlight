@@ -116,8 +116,8 @@ class LoggingProgressBar(ProgressBar):
         epoch_list = [e.index[0] for e in metrics_df_list]
         stage_list = [e.index.name for e in metrics_df_list]
         df = pd.concat(metrics_df_list)
-        df.insert(loc=0, column='stage', value=stage_list)
-        df.insert(loc=0, column='epoch', value=epoch_list)
+        df.insert(loc=0, column="stage", value=stage_list)
+        df.insert(loc=0, column="epoch", value=epoch_list)
         df.reset_index(inplace=True, drop=True)
         return df
 
