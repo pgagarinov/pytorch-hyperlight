@@ -105,7 +105,9 @@ def jlab_install_extensions(extension_name_list) -> None:
     os.environ["NODE_OPTIONS"] = "--max-old-space-size=4096"
 
     for extension_name in extension_name_list:
-        exec_cmd_or_exit(__JUPYTERLAB_EXTENSION_INSTALL_COMMAND + [extension_name, "--no-build"])
+        exec_cmd_or_exit(
+            __JUPYTERLAB_EXTENSION_INSTALL_COMMAND + [extension_name, "--no-build"]
+        )
 
     exec_cmd_or_exit(["jupyter", "lab", "build", "--minimize=False"])
 
@@ -113,8 +115,10 @@ def jlab_install_extensions(extension_name_list) -> None:
 
 
 def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
-    out_stream: tempfile.NamedTemporaryFile = tempfile.NamedTemporaryFile('wt', suffix='.yml', delete=False)
-    with open(str(CURRENT_PATH / req_relpath), 'rt') as inp_stream:
+    out_stream: tempfile.NamedTemporaryFile = tempfile.NamedTemporaryFile(
+        "wt", suffix=".yml", delete=False
+    )
+    with open(str(CURRENT_PATH / req_relpath), "rt") as inp_stream:
         inp_line_str: str = inp_stream.readline()
         if mode == "all":
             while inp_line_str:
@@ -126,17 +130,21 @@ def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
             prev_out_line_str: str = None
             while inp_line_str:
                 if not is_pip:
-                    is_pip = '- pip:' in inp_line_str
+                    is_pip = "- pip:" in inp_line_str
                     if is_pip:
                         inp_pip_line_str = inp_line_str.rstrip()
                         inp_line_str = inp_stream.readline()
                         if not inp_line_str:
                             out_stream.write(prev_out_line_str)
                         continue
-                ind_comment_start: int = inp_line_str.find('#')
+                ind_comment_start: int = inp_line_str.find("#")
                 if ind_comment_start >= 0:
-                    mode_list: List[str] = \
-                        [mode_str.strip() for mode_str in inp_line_str[ind_comment_start + 1:].rstrip().split(',')]
+                    mode_list: List[str] = [
+                        mode_str.strip()
+                        for mode_str in inp_line_str[ind_comment_start + 1 :]
+                        .rstrip()
+                        .split(",")
+                    ]
                     if mode not in mode_list:
                         inp_line_str = inp_stream.readline()
                         if not inp_line_str:
@@ -147,9 +155,9 @@ def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
                     out_line_str = inp_line_str.rstrip()
                 inp_line_str = inp_stream.readline()
                 if prev_out_line_str is not None:
-                    out_stream.write(prev_out_line_str + '\n')
+                    out_stream.write(prev_out_line_str + "\n")
                 if is_pip:
-                    out_stream.write(inp_pip_line_str + '\n')
+                    out_stream.write(inp_pip_line_str + "\n")
                     is_pip = False
                 if inp_line_str:
                     prev_out_line_str = out_line_str
@@ -209,18 +217,19 @@ def update(conda_env_path, mode, debug=False):
         }
 
     if cmd_run_param_dict["install_requirements"]:
-        python_requirements_abs_path: Path = \
-            filter_python_requirements_by_mode(
-                Path("python_requirements.yml"),
-                mode if cmd_run_param_dict["filter_requirements"] else "all")
-        update_conda_env_from_relfile(conda_env_path, python_requirements_abs_path, debug)
+        python_requirements_abs_path: Path = filter_python_requirements_by_mode(
+            Path("python_requirements.yml"),
+            mode if cmd_run_param_dict["filter_requirements"] else "all",
+        )
+        update_conda_env_from_relfile(
+            conda_env_path, python_requirements_abs_path, debug
+        )
         os.unlink(str(python_requirements_abs_path))
 
-        exec_cmd(['python','-m','spacy','download','en_core_web_sm'])
-        exec_cmd(['python', '-m', 'spacy', 'download', 'en'])
-        exec_cmd(['python', '-m', 'spacy', 'download', 'de'])
-        exec_cmd(['python', '-m', 'spacy', 'download', 'xx_ent_wiki_sm'])
-
+        exec_cmd(["python", "-m", "spacy", "download", "en_core_web_sm"])
+        exec_cmd(["python", "-m", "spacy", "download", "en"])
+        exec_cmd(["python", "-m", "spacy", "download", "de"])
+        exec_cmd(["python", "-m", "spacy", "download", "xx_ent_wiki_sm"])
 
     if cmd_run_param_dict["install_modules"]:
         module_to_path_dict: Dict[str, Path] = {
@@ -229,25 +238,27 @@ def update(conda_env_path, mode, debug=False):
         module_name_list: List[str] = cmd_run_param_dict["module_names"]
         if len(module_name_list) == 0:
             module_relpath_list = [
-                module_relpath / module_name for
-                module_name, module_relpath in module_to_path_dict.items()]
+                module_relpath / module_name
+                for module_name, module_relpath in module_to_path_dict.items()
+            ]
         else:
             module_relpath_list = [
-                module_relpath / module_name for
-                module_name, module_relpath in module_to_path_dict.items()
-                if module_name in module_name_list]
+                module_relpath / module_name
+                for module_name, module_relpath in module_to_path_dict.items()
+                if module_name in module_name_list
+            ]
         pip_install_modules_by_relpath(module_relpath_list)
 
     if cmd_run_param_dict["jlab_install_extensions"]:
         jlab_install_extensions(
             [
                 "@jupyter-widgets/jupyterlab-manager@2.0.0",
- 		"@ryantam626/jupyterlab_code_formatter@1.3.8",
-		"@krassowski/jupyterlab-lsp@2.1.1",
-		"@jupyterlab/git@0.22.3",
-		"@jupyterlab/debugger@0.3.4",
+                "@ryantam626/jupyterlab_code_formatter@1.3.8",
+                "@krassowski/jupyterlab-lsp@2.1.1",
+                "@jupyterlab/git@0.22.3",
+                "@jupyterlab/debugger@0.3.4",
                 "jupyter-matplotlib@0.7.4",
-		# "jupyterlab_tensorboard@0.2.1",
+                # "jupyterlab_tensorboard@0.2.1",
                 # "jupyterlab-jupytext@1.2.3",
                 "qgrid2@1.1.3",
             ]
@@ -317,4 +328,3 @@ if __name__ == "__main__":
 
     cli_func = command_name_cli_func_map[args.command]
     cli_func()
-

@@ -28,6 +28,7 @@ from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+
 #
 import pandas as pd
 
@@ -103,7 +104,8 @@ class Runner:
         self.__is_debug = is_debug
 
     def __process_pl_loggers_hook(self, pl_loggers):
-        pl_loggers.copy().extend(self.wandb_integrator.get_pl_loggers())
+        pl_loggers = pl_loggers.copy()
+        pl_loggers.extend(self.wandb_integrator.get_pl_loggers())
         return pl_loggers
 
     def __process_search_space_hook(self, search_space_config):
@@ -113,9 +115,8 @@ class Runner:
         return search_space_config
 
     def __process_raytune_loggers_hook(self, raytune_loggers):
-        raytune_loggers = raytune_loggers.copy().extend(
-            self.wandb_integrator.get_raytune_loggers()
-        )
+        raytune_loggers = raytune_loggers.copy()
+        raytune_loggers.extend(self.wandb_integrator.get_raytune_loggers())
         return raytune_loggers
 
     def __set_seed(self):
@@ -165,7 +166,9 @@ class Runner:
 
         metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
 
-        trial_metrics = TrialMetrics(pd.Series(metrics_dict), lprogress_bar_callback.get_metrics_df())
+        trial_metrics = TrialMetrics(
+            pd.Series(metrics_dict), lprogress_bar_callback.get_metrics_df()
+        )
 
         return {
             "lmodule_best": lmodule_best,

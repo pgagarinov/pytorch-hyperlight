@@ -66,7 +66,7 @@ dependencies:
     - bpemb==0.3.2
     - torchsummary==1.5.1
     - ray[tune]==1.0.1.post1
-    - wandb==0.10.11
+    - wandb==0.10.12
     - efficientnet-pytorch==0.7.0
     - networkx==2.5
     - pymorphy2==0.9.1
@@ -81,4 +81,5 @@ dependencies:
     - tabulate==0.8.7
     - pytest==6.2.1
     - coverage==5.3
+    - pytest-xdist==2.2.0
   # - pipdeeptree==1.0.0  # doesn't play nicely with conda environment

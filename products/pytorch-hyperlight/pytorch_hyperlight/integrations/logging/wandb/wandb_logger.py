@@ -2,6 +2,8 @@ from pathlib import Path
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 import logging
 import os
+import pytorch_lightning as pl
+import ray.tune.integration.wandb as rtwb
 
 
 # noinspection PyUnresolvedReferences
@@ -26,6 +28,10 @@ class WandBIntegrator:
         os.environ["WANDB_SILENT"] = "true"
         self.__disable_warnings()
 
+    @staticmethod
+    def __get_group():
+        return ExperimentTrialNamer.get_group_name()
+
     def get_key(self):
         return self.get_key_path().read_text().replace("\n", "")
 
@@ -47,7 +53,7 @@ class WandBIntegrator:
             exp_config = exp_config.copy()
             exp_config["wandb"] = {
                 "project": self.__experiment_id,
-                "group": ExperimentTrialNamer.get_group_name(),
+                "group": self.__get_group(),
                 "api_key": self.get_key(),
                 "log_config": True,
             }
@@ -57,7 +63,9 @@ class WandBIntegrator:
         if self.key_exists():
             pl_loggers = [
                 pl.loggers.wandb.WandbLogger(
-                    project=self.__experiment_id, name=self.get_group(), group="manual"
+                    project=self.__experiment_id,
+                    name=self.__get_group(),
+                    group="manual",
                 )
             ]
         else:
@@ -66,7 +74,7 @@ class WandBIntegrator:
 
     def get_raytune_loggers(self):
         if self.key_exists():
-            raytune_loggers = [tune.integration.wandb.WandbLogger]
+            raytune_loggers = [rtwb.WandbLogger]
         else:
             raytune_loggers = []
 

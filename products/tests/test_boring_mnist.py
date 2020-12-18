@@ -26,7 +26,7 @@ import pandas as pd
 
 
 class TestBoringMNIST:
-    @pytest.fixture
+    @pytest.fixture(scope="module")
     def boring_mnist(self):
         FAST_DEV_RUN = True
         EXPERIMENT_ID = "boring-mnist"
@@ -428,8 +428,6 @@ class TestBoringMNIST:
                 probs = torch.nn.functional.softmax(logit, dim=-1).numpy()
             return probs
 
-        # %%
-
         # noinspection PyShadowingNames,PyTypeChecker
         def show_some_predictions(loaders_dict, lmodule):
             # noinspection PyTypeChecker
@@ -499,4 +497,3 @@ class TestBoringMNIST:
         assert isinstance(lmodule_best, pl.LightningModule)
         best_epoch = result["best_epoch"]
         assert isinstance(best_epoch, int)
-
