@@ -8,3 +8,5 @@ __pycache__
 .coverage*
 **.virtual_documents
 products/tests/wandb
+screenlog.*
+mlruns

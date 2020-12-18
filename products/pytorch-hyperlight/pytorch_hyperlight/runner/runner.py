@@ -381,7 +381,7 @@ class Runner:
         lr_monitor = LearningRateMonitor(logging_interval="step")
         pl_callbacks.append(lr_monitor)
         #
-        if extra_config["ptl_trainer_patience"]:
+        if "ptl_trainer_patience" in extra_config and extra_config["ptl_trainer_patience"]:
             es_callback = EarlyStopping(
                 monitor=extra_config["metric_to_optimize"],
                 patience=extra_config["ptl_trainer_patience"],
