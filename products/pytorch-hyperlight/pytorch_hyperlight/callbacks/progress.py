@@ -10,22 +10,14 @@ from tqdm.autonotebook import tqdm
 class LoggingProgressBar(ProgressBar):
     # noinspection PyUnusedLocal
     @staticmethod
-    def __default_name_metric_pretty(stage, metric_name):
+    def __default_name_metric_pretty(stage_list, metric_name):
         # stage can be 'train', 'validation' and 'test'
         return metric_name
 
     @staticmethod
-    def __default_name_stage_pretty(stage):
+    def __default_name_stage_pretty(stage_list):
         # stage can be 'train', 'val' and 'test'
-        if stage == "train":
-            stage_pretty = "Tr/Val"
-        elif stage == "val":
-            stage_pretty = "Val"
-        elif stage == "test":
-            stage_pretty = "Tst"
-        else:
-            raise NameError
-        return stage_pretty
+        return '/'.join([s.capitalize() for s in stage_list])
 
     def __init__(
         self,
@@ -72,14 +64,14 @@ class LoggingProgressBar(ProgressBar):
         return bar
 
     def init_test_tqdm(self):
-        STAGE_NAME = "test"
+        STAGE_NAME = ["test"]
         bar = super().init_test_tqdm()
         bar.leave = False
         bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
         return bar
 
     def init_validation_tqdm(self):
-        STAGE_NAME = "val"
+        STAGE_NAME = ["val"]
         bar = super().init_validation_tqdm()
         bar.set_description(self.__f_name_stage_pretty(STAGE_NAME))
         return bar
@@ -98,12 +90,17 @@ class LoggingProgressBar(ProgressBar):
         metrics_table_str = tabulate(metrics_df, headers="keys", tablefmt="pipe")
         tqdm.write(metrics_table_str)
 
-    def __log(self, stage, trainer):
+    def __log(self, stage_list, trainer):
         metrics_dict = self.__filter_metrics(trainer.progress_bar_dict)
+
+        metric_prefix_set = MetricDictUtils.get_prefix_set(metrics_dict)
+
+        stage_list = [p for p in stage_list if p in metric_prefix_set]
+
         metrics_dict = {
-            self.__f_name_metric_pretty(stage, k): v for k, v in metrics_dict.items()
+            self.__f_name_metric_pretty(stage_list, k): v for k, v in metrics_dict.items()
         }
-        stage_name_pretty = self.__f_name_stage_pretty(stage)
+        stage_name_pretty = self.__f_name_stage_pretty(stage_list)
         epoch = trainer.current_epoch
         self.__disp_dict(metrics_dict, epoch, stage_name_pretty)
 
@@ -111,18 +108,18 @@ class LoggingProgressBar(ProgressBar):
         pass
 
     def on_train_epoch_end(self, trainer, pl_module, outputs):
-        STAGE_NAME = "train"
+        STAGE_LIST = ["train", "val"]
         super().on_train_epoch_end(trainer, pl_module, outputs)
         self.main_progress_bar.close()
         if not trainer.running_sanity_check:
-            self.__log(STAGE_NAME, trainer)
+            self.__log(STAGE_LIST, trainer)
         self.main_progress_bar = self.init_train_tqdm()
 
     def on_validation_epoch_end(self, trainer, pl_module):
         pass
 
     def on_test_epoch_end(self, trainer, pl_module):
-        STAGE_NAME = "test"
+        STAGE_LIST = ["test"]
         super().on_test_epoch_end(trainer, pl_module)
         if not trainer.running_sanity_check:
-            self.__log(STAGE_NAME, trainer)
+            self.__log(STAGE_LIST, trainer)

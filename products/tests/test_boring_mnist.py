@@ -23,7 +23,7 @@ import pytest
 class TestBoringMNIST:
 
     @pytest.fixture
-    def boring_mnist(self):
+    def boring_mnist(self, request):
         FAST_DEV_RUN = True
         EXPERIMENT_ID = "boring-mnist"
         DATASETS_PATH = pathlib.Path(__file__).parent.absolute()
@@ -132,14 +132,6 @@ class TestBoringMNIST:
                     f"{prefix}_prec": self.prec,
                     f"{prefix}_rec": self.rec,
                 }
-                """
-                return {
-                    f"{prefix}_acc": self.acc(probs, target),
-                    f"{prefix}_f1": self.f1(probs, target),
-                    f"{prefix}_prec": self.prec(probs, target),
-                    f"{prefix}_rec": self.rec(probs, target),
-                }
-                """
 
         # %%
 
@@ -295,6 +287,7 @@ class TestBoringMNIST:
             "ptl_precision": 32,  # PTL Trainer
             "train_loader_name": "train_loader",
             "val_loader_name": "val_loader",
+            "test_loader_name": "test_loader",
             "batch_size_main": 32,
             # batch size for validation runs in the main process once all Ray Tune trials are finished
             "gpus": 0,
@@ -362,20 +355,42 @@ class TestBoringMNIST:
             "loaders_dict": loaders_dict,
         }
 
-    def test_touch_run_single_trial(self, boring_mnist):
+    @staticmethod
+    def disable_loaders_in_tune_config(tune_config, is_val, is_test):
+        tune_config = tune_config.copy()
+        if not is_val and is_test:
+            del tune_config["val_loader_name"]
+            tune_config["metric_to_optimize"] = "train_f1_epoch"
+            tune_config["ray_metrics_to_show"] =[
+                "train_loss_epoch",
+                "train_f1_epoch",
+                "train_acc_epoch",
+            ]  # Ray
+
+        if not is_test:
+            del tune_config["test_loader_name"]
+        return tune_config
+
+    @pytest.mark.parametrize("is_val, is_test", [(True,True), (True, False), (False, True), (False, False)])
+    def test_touch_run_single_trial(self, boring_mnist, is_val, is_test):
+
 
         phl_runner = boring_mnist["phl_runner"]
         config = boring_mnist["config"]
         tune_config = boring_mnist["tune_config"]
+
+        tune_config = self.disable_loaders_in_tune_config(tune_config, is_val, is_test)
+
         best_result = phl_runner.run_single_trial(config, tune_config)
         self.touch_check_results(boring_mnist["loaders_dict"], best_result)
 
-    def test_touch_run_hyper_opt(self, boring_mnist):
+    @pytest.mark.parametrize("is_test", [True, False])
+    def test_touch_run_hyper_opt(self, boring_mnist, is_test):
 
         phl_runner = boring_mnist["phl_runner"]
         search_space_config = boring_mnist["search_space_config"]
         tune_config = boring_mnist["tune_config"]
-
+        tune_config = self.disable_loaders_in_tune_config(tune_config, True, is_test)
         best_result = phl_runner.run_hyper_opt(
             search_space_config,
             tune_config,

@@ -261,16 +261,16 @@ class Runner:
     def __revalidate(
         self, trainer, lmodule_best, val_dataloader, lprogress_bar_callback
     ):
-        def __test_is_revalidate_name_metric_pretty(stage, metric_name):
+        def __test_is_revalidate_name_metric_pretty(stage_list, metric_name):
             # stage can be 'train', 'validation' and 'test'
-            assert stage == "test"
+            assert stage_list == ["test"]
             metric_name = metric_name.replace("test_", "reval_")
 
             return metric_name
 
-        def __test_is_revalidate_name_stage_pretty(stage):
+        def __test_is_revalidate_name_stage_pretty(stage_list):
             # stage can be 'train', 'validation' and 'test'
-            assert stage == "test"
+            assert stage_list == ["test"]
             return "Reval"
 
         #
@@ -310,26 +310,26 @@ class Runner:
         return reval_metrics_dict
 
     def __revalidate_n_test_if_possible(self, lmodule_best, trainer, loaders_dict, extra_config, lprogress_bar_callback):
-        val_loader_name = extra_config["val_loader_name"]
-        if val_loader_name:
-            reval_metrics_dict = self.__revalidate(
-                trainer,
-                lmodule_best,
-                loaders_dict[val_loader_name],
-                lprogress_bar_callback,
-            )
-        else:
-            reval_metrics_dict = {}
+        reval_metrics_dict = {}
+        if "val_loader_name" in extra_config:
+            val_loader_name = extra_config["val_loader_name"]
+            if val_loader_name:
+                reval_metrics_dict = self.__revalidate(
+                    trainer,
+                    lmodule_best,
+                    loaders_dict[val_loader_name],
+                    lprogress_bar_callback,
+                )
 
-        test_loader_name = extra_config["test_loader_name"]
-        if test_loader_name:
-            test_metrics_dict = self.__test(
-                trainer,
-                lmodule_best,
-                loaders_dict[test_loader_name],
-            )
-        else:
-            test_metrics_dict = {}
+        test_metrics_dict = {}
+        if "test_loader_name" in extra_config:
+            test_loader_name = extra_config["test_loader_name"]
+            if test_loader_name:
+                test_metrics_dict = self.__test(
+                    trainer,
+                    lmodule_best,
+                    loaders_dict[test_loader_name],
+                )
 
         metrics_dict = {**reval_metrics_dict, **test_metrics_dict}
         return metrics_dict
@@ -504,10 +504,12 @@ class Runner:
             lmodule = lmodule_builder.create(config)
         #
         train_loader_name = extra_config["train_loader_name"]
-        val_loader_name = extra_config["val_loader_name"]
         fit_kwargs_dict = {}
-        if val_loader_name:
-            fit_kwargs_dict["val_dataloaders"] = loaders_dict[val_loader_name]
+
+        if "val_loader_name" in extra_config:
+            val_loader_name = extra_config["val_loader_name"]
+            if val_loader_name:
+                fit_kwargs_dict["val_dataloaders"] = loaders_dict[val_loader_name]
         #
         f_set_seed()
         #

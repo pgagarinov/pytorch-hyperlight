@@ -33,12 +33,7 @@ def run_tune_experiment_asha_hyperopt(
 
     reporter = CLIReporter(
         parameter_columns=list(exp_config.keys()),
-        metric_columns=[
-            "val_loss_epoch",
-            "val_f1_epoch",
-            "val_acc_epoch",
-            "training_iteration",
-        ],
+        metric_columns=tune_config["ray_metrics_to_show"] + ["training_iteration"],
         max_progress_rows=tune_config["n_samples"],
     )
     #
