@@ -492,9 +492,12 @@ class Runner:
         loaders_dict = f_configure_dataloaders(
             config["batch_size"], n_workers=extra_config["cpu_per_trial"]
         )
-
+        #
+        train_loader_name = extra_config["train_loader_name"]
+        train_loader = loaders_dict[train_loader_name]
+        #
         config["n_train_steps"] = (
-            len(loaders_dict["train_loader"]) * config["max_epochs"]
+            len(train_loader) * config["max_epochs"]
         )
         #
         if checkpoint_dir:
@@ -514,7 +517,6 @@ class Runner:
             #
             lmodule = lmodule_builder.create(config)
         #
-        train_loader_name = extra_config["train_loader_name"]
         fit_kwargs_dict = {}
 
         if "val_loader_name" in extra_config:
@@ -524,7 +526,7 @@ class Runner:
         #
         f_set_seed()
         #
-        _ = trainer.fit(lmodule, loaders_dict[train_loader_name], **fit_kwargs_dict)
+        _ = trainer.fit(lmodule, train_loader, **fit_kwargs_dict)
 
         return {
             "lmodule": lmodule,

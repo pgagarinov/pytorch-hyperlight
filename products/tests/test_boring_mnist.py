@@ -81,7 +81,7 @@ class TestBoringMNIST:
             result_dict = create_datasets(val_size)
             #
             for prefix in ["train", "full_train"]:
-                result_dict[f"{prefix}_loader"] = DataLoader(
+                result_dict[f"{prefix}_ldr"] = DataLoader(
                     result_dict[f"{prefix}_dataset"],
                     batch_size=batch_size,
                     shuffle=SHUFFLE,
@@ -92,7 +92,7 @@ class TestBoringMNIST:
                 )
             #
             for prefix in ["val", "test"]:
-                result_dict[f"{prefix}_loader"] = DataLoader(
+                result_dict[f"{prefix}_ldr"] = DataLoader(
                     result_dict[f"{prefix}_dataset"],
                     batch_size=batch_size,
                     shuffle=False,
@@ -286,9 +286,9 @@ class TestBoringMNIST:
             "ptl_trainer_patience": 7,  # PTL Trainer
             # "ptl_precision": 16,  # PTL Trainer
             "ptl_precision": 32,  # PTL Trainer
-            "train_loader_name": "train_loader",
-            "val_loader_name": "val_loader",
-            "test_loader_name": "test_loader",
+            "train_loader_name": "train_ldr",
+            "val_loader_name": "val_ldr",
+            "test_loader_name": "test_ldr",
             "batch_size_main": 32,
             # batch size for validation runs in the main process once all Ray Tune trials are finished
             "gpus": 0,
