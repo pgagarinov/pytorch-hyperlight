@@ -69,7 +69,6 @@ class LitModuleBuilder:
 class Runner:
     def __init__(
         self,
-        lmodule_builder,
         f_configure_dataloaders,
         f_set_seed,
         pl_callbacks=None,
@@ -94,7 +93,6 @@ class Runner:
             self.__raytune_loggers
         )
         #
-        self.__lmodule_builder = lmodule_builder
         self.__pl_callbacks = pl_callbacks
         self.__f_configure_dataloaders = f_configure_dataloaders
         self.__f_set_seed = f_set_seed
@@ -123,25 +121,22 @@ class Runner:
     def __get_dataloaders(self, batch_size, n_workers):
         return self.__f_configure_dataloaders(batch_size, n_workers=n_workers)
 
-    def __create_lmodule(self, hparams):
-        return self.__lmodule_builder.create(hparams)
-
-    def __load_lmodule_from_checkpoint(self, checkpoint_path, **kwargs):
-        return self.__lmodule_builder.load_from_checkpoint(checkpoint_path, **kwargs)
-
     def __get_pl_callbacks_extended(self):
         pl_callbacks = self.__pl_callbacks.copy()
         lprogress_bar_callback = LoggingProgressBar()
         pl_callbacks.append(lprogress_bar_callback)
         return pl_callbacks, lprogress_bar_callback
 
-    def run_single_trial(self, config, extra_config):
+    def run_single_trial(self, lmodule_class, config, extra_config):
 
         pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
 
         extra_config = self.__add_experiment_id_to_dict(extra_config)
 
+        lmodule_builder = LitModuleBuilder(lmodule_class)
+
         train_result = self.__run_in_main_process(
+            lmodule_builder,
             config,
             extra_config=extra_config,
             pl_callbacks=pl_callbacks,
@@ -152,11 +147,10 @@ class Runner:
         #
         del train_result["lmodule"]
 
-        (lmodule_best, best_epoch) = self.__load_lmodule_from_checkpoint(
+        (lmodule_best, best_epoch) = lmodule_builder.load_from_checkpoint(
             train_result["trainer"].checkpoint_callback.best_model_path
         )
         train_val_metrics_dict = self.__get_metrics(train_result["trainer"])
-
 
         reval_test_metrics_dict = self.__revalidate_n_test_if_possible(lmodule_best, 
             train_result["trainer"], train_result["dataloaders_dict"], extra_config, 
@@ -171,14 +165,14 @@ class Runner:
             "trainer": train_result["trainer"],
         }
 
-    def __run_in_main_process(self, config, **kwargs):
+    def __run_in_main_process(self, lmodule_builder, config, **kwargs):
         """
         Similar wrapper but this time for running single experiments in manual mode
         """
         return self.__train_with_checkpoint(
             config,
             self.__f_configure_dataloaders,
-            self.__lmodule_builder,
+            lmodule_builder,
             self.__f_set_seed,
             checkpoint_dir=None,
             from_ray=False,
@@ -195,11 +189,15 @@ class Runner:
 
     def run_hyper_opt(
         self,
+        lmodule_class,
         search_space_config,
         tune_config,
         f_tune_init=tune_init,
         f_run_tune_experiment=run_tune_experiment_asha_hyperopt,
     ):
+
+        lmodule_builder = LitModuleBuilder(lmodule_class)
+
         f_tune_init()
         #
         tune_config = self.__add_experiment_id_to_dict(tune_config)
@@ -214,7 +212,7 @@ class Runner:
         f_trainer = tune.with_parameters(
             self.__train_with_checkpoint_drop_output,
             f_configure_dataloaders=self.__f_configure_dataloaders,
-            lmodule_builder=self.__lmodule_builder,
+            lmodule_builder=lmodule_builder,
             f_set_seed=self.__f_set_seed,
             extra_config=tune_config,
             pl_callbacks=self.__pl_callbacks,
@@ -234,7 +232,7 @@ class Runner:
 
         checkpoint_path = os.path.join(analysis.best_checkpoint, "checkpoint.ckpt")
 
-        lmodule_best, best_epoch = self.__load_lmodule_from_checkpoint(checkpoint_path)
+        lmodule_best, best_epoch = lmodule_builder.load_from_checkpoint(checkpoint_path)
 
         pl_callbacks, lprogress_bar_callback = self.__get_pl_callbacks_extended()
 

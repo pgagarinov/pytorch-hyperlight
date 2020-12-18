@@ -333,7 +333,6 @@ class TestBoringMNIST:
         pl_callbacks = [UnfreezeModelTailCallback(CONFIG["unfreeze_epochs"])]
 
         phl_runner = pth.Runner(
-            lmodule_builder,
             configure_dataloaders,
             set_seed,
             pl_callbacks=pl_callbacks,
@@ -342,7 +341,7 @@ class TestBoringMNIST:
         )
 
         return {
-            "lmodule_builder": lmodule_builder,
+            "lmodule_class": LitBackbone,
             "configure_dataloaders": configure_dataloaders,
             "set_seed": set_seed,
             "pl_callbacks": pl_callbacks,
@@ -374,14 +373,13 @@ class TestBoringMNIST:
     @pytest.mark.parametrize("is_val, is_test", [(True,True), (True, False), (False, True), (False, False)])
     def test_touch_run_single_trial(self, boring_mnist, is_val, is_test):
 
-
         phl_runner = boring_mnist["phl_runner"]
         config = boring_mnist["config"]
         tune_config = boring_mnist["tune_config"]
-
         tune_config = self.disable_loaders_in_tune_config(tune_config, is_val, is_test)
+        lmodule_class = boring_mnist["lmodule_class"]
 
-        best_result = phl_runner.run_single_trial(config, tune_config)
+        best_result = phl_runner.run_single_trial(lmodule_class, config, tune_config)
         self.touch_check_results(boring_mnist["loaders_dict"], best_result)
 
     @pytest.mark.parametrize("is_test", [True, False])
@@ -391,7 +389,9 @@ class TestBoringMNIST:
         search_space_config = boring_mnist["search_space_config"]
         tune_config = boring_mnist["tune_config"]
         tune_config = self.disable_loaders_in_tune_config(tune_config, True, is_test)
+        lmodule_class = boring_mnist["lmodule_class"]
         best_result = phl_runner.run_hyper_opt(
+            lmodule_class,
             search_space_config,
             tune_config,
         )
