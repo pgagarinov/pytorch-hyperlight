@@ -277,7 +277,8 @@ class TestBoringMNIST:
             "epoch_upper_limit": 45,  # Ray
             "n_samples": 40,  # Ray
             # "n_samples": 3,
-            "ptl_trainer_patience": 7,  # PTL Trainer
+            "ptl_early_stopping_patience": 7,  # PTL Trainer
+            "ptl_early_stopping_grace_period": 7,  # PTL Trainer
             # "ptl_precision": 16,  # PTL Trainer
             "ptl_precision": 32,  # PTL Trainer
             "train_loader_name": "train_ldr",
@@ -355,6 +356,7 @@ class TestBoringMNIST:
 
         if not is_test:
             del tune_config["test_loader_name"]
+            del tune_config["ptl_early_stopping_grace_period"]
         return tune_config
 
     @pytest.mark.parametrize(

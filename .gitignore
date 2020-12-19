@@ -10,3 +10,5 @@ __pycache__
 products/tests/wandb
 screenlog.*
 mlruns
+products/examples/wandb
+*.log

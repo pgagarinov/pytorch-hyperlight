@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import (
     LearningRateMonitor,
     ModelCheckpoint,
 )
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_hyperlight.callbacks.early_stopping import EarlyStoppingWithGracePeriod
 from pytorch_lightning.utilities.cloud_io import load as pl_load
 
 ###
@@ -382,15 +382,20 @@ class Runner:
         pl_callbacks.append(lr_monitor)
         #
         if (
-            "ptl_trainer_patience" in extra_config
-            and extra_config["ptl_trainer_patience"]
+            "ptl_early_stopping_patience" in extra_config
         ):
-            es_callback = EarlyStopping(
+            if "ptl_early_stopping_grace_period" in extra_config:
+                es_kwargs = {'grace_period': extra_config['ptl_early_stopping_grace_period']}
+            else:
+                es_kwargs = {}
+            #
+            es_callback = EarlyStoppingWithGracePeriod(
                 monitor=extra_config["metric_to_optimize"],
-                patience=extra_config["ptl_trainer_patience"],
+                patience=extra_config["ptl_early_stopping_patience"],
                 verbose=True,
                 mode=extra_config["metric_opt_mode"],
                 min_delta=0,
+                **es_kwargs
             )
             pl_callbacks.append(es_callback)
         #
