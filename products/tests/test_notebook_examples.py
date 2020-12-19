@@ -6,6 +6,7 @@ import pytest
 
 class TestExampleNotebooks:
     @pytest.mark.parametrize("usage_mode", ["single-run", "hyper-opt"])
+    @pytest.mark.forked
     def test_boring_mnist_example(self, usage_mode):
         FILE_NAME = "boring_mnist.ipynb"
         notebook_filename = (
@@ -13,8 +14,4 @@ class TestExampleNotebooks:
         )
         with tempfile.TemporaryDirectory() as tmp_dir_name:
             out_file = Path(tmp_dir_name) / FILE_NAME
-            print(notebook_filename)
-            print(out_file)
-            pm.execute_notebook(
-                notebook_filename, out_file.name, {"USAGE_MODE": usage_mode}
-            )
+            pm.execute_notebook(notebook_filename, out_file, {"USAGE_MODE": usage_mode})

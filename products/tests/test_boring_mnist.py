@@ -1,33 +1,28 @@
-import matplotlib.patches as patches
-import numpy as np
-from pytorch_hyperlight import Runner
-from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
-
-import pytorch_lightning as pl
-import pytorch_lightning.metrics as metrics
-import torch
-
-# noinspection PyPep8Naming
-import torch.nn.functional as F
-from matplotlib import pyplot as plt
-from matplotlib.font_manager import FontProperties
-from pytorch_lightning import Callback
-from ray import tune
-
-# noinspection PyProtectedMember
-from torch.utils.data import DataLoader, random_split
-from torchvision import transforms
-from torchvision.datasets.mnist import MNIST
-from transformers import AdamW, get_linear_schedule_with_warmup
-import warnings
-import pathlib
 import pytest
-import pandas as pd
 
 
 class TestBoringMNIST:
     @pytest.fixture(scope="module")
     def boring_mnist(self):
+        from pytorch_hyperlight import Runner
+
+        import pytorch_lightning as pl
+        import pytorch_lightning.metrics as metrics
+        import torch
+
+        # noinspection PyPep8Naming
+        import torch.nn.functional as F
+        from pytorch_lightning import Callback
+        from ray import tune
+
+        # noinspection PyProtectedMember
+        from torch.utils.data import DataLoader, random_split
+        from torchvision import transforms
+        from torchvision.datasets.mnist import MNIST
+        from transformers import AdamW, get_linear_schedule_with_warmup
+        import warnings
+        import pathlib
+
         FAST_DEV_RUN = True
         EXPERIMENT_ID = "boring-mnist"
         DATASETS_PATH = pathlib.Path(__file__).parent.absolute()
@@ -37,8 +32,6 @@ class TestBoringMNIST:
         # please note how 'full_train_dataset' is created along with train,
         # val and test datasets
         def create_datasets(val_size=0.2):
-            SEED = 16
-            pl.seed_everything(SEED)
             #
             full_train_dataset = MNIST(
                 DATASETS_PATH,
@@ -255,7 +248,7 @@ class TestBoringMNIST:
 
         N_CLASSES = loaders_dict["n_classes"]
         LMODULE_CLASS = LitBackbone
-
+        GPU_PER_TRIAL = 0.3 * torch.cuda.is_available()
         # %%
 
         CONFIG = {
@@ -269,6 +262,7 @@ class TestBoringMNIST:
         }
 
         TUNE_CONFIG = {
+            "seed": 16,
             "metric_to_optimize": "val_f1_epoch",  # Ray + PTL Trainer
             "ray_metrics_to_show": [
                 "val_loss_epoch",
@@ -277,7 +271,7 @@ class TestBoringMNIST:
             ],  # Ray
             "metric_opt_mode": "max",  # Ray + PTL Trainer
             "cpu_per_trial": 3,  # Ray + DataLoaders
-            "gpu_per_trial": 0,  # Ray
+            "gpu_per_trial": GPU_PER_TRIAL,  # Ray
             "n_checkpoints_to_keep": 1,  # Ray
             "grace_period": 6,  # Ray
             "epoch_upper_limit": 45,  # Ray
@@ -291,13 +285,13 @@ class TestBoringMNIST:
             "test_loader_name": "test_ldr",
             "batch_size_main": 32,
             # batch size for validation runs in the main process once all Ray Tune trials are finished
-            "gpus": 0,
+            "gpus": -1,
         }
 
         if FAST_DEV_RUN:
             CONFIG["max_epochs"] = 2
             TUNE_CONFIG["n_samples"] = 2
-            TUNE_CONFIG["gpu_per_trial"] = 0
+            TUNE_CONFIG["gpu_per_trial"] = GPU_PER_TRIAL
 
         SEARCH_SPACE_CONFIG = {
             "unfreeze_epochs": [0, 1],
@@ -311,12 +305,6 @@ class TestBoringMNIST:
         if FAST_DEV_RUN:
             SEARCH_SPACE_CONFIG["max_epochs"] = 2
             SEARCH_SPACE_CONFIG["batch_size"] = 32
-
-        def set_seed():
-            SEED = 16
-            pl.seed_everything(SEED)
-
-        # %%
 
         class UnfreezeModelTailCallback(Callback):
             def __init__(self, epoch_vec):
@@ -335,7 +323,6 @@ class TestBoringMNIST:
 
         phl_runner = Runner(
             configure_dataloaders,
-            set_seed,
             pl_callbacks=pl_callbacks,
             is_debug=FAST_DEV_RUN,
             experiment_id=EXPERIMENT_ID,
@@ -344,7 +331,6 @@ class TestBoringMNIST:
         return {
             "lmodule_class": LMODULE_CLASS,
             "configure_dataloaders": configure_dataloaders,
-            "set_seed": set_seed,
             "pl_callbacks": pl_callbacks,
             "is_debug": FAST_DEV_RUN,
             "experiment_id": EXPERIMENT_ID,
@@ -375,7 +361,6 @@ class TestBoringMNIST:
         "is_val, is_test", [(True, True), (True, False), (False, True), (False, False)]
     )
     def test_touch_run_single_trial(self, boring_mnist, is_val, is_test):
-
         phl_runner = boring_mnist["phl_runner"]
         config = boring_mnist["config"]
         tune_config = boring_mnist["tune_config"]
@@ -387,6 +372,7 @@ class TestBoringMNIST:
         self.__check_single_trial_result(best_result)
         self.__touch_check_results(boring_mnist["loaders_dict"], best_result)
 
+    @pytest.mark.forked
     @pytest.mark.parametrize("is_test", [True, False])
     def test_touch_run_hyper_opt(self, boring_mnist, is_test):
 
@@ -405,7 +391,16 @@ class TestBoringMNIST:
 
     @staticmethod
     def __touch_check_results(loaders_dict, best_result):
-        DEVICE = torch.device("cpu")
+        import matplotlib.patches as patches
+        import numpy as np
+        import torch
+
+        # noinspection PyPep8Naming
+        from matplotlib import pyplot as plt
+        from matplotlib.font_manager import FontProperties
+        from torchvision.datasets.mnist import MNIST
+
+        DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # noinspection PyUnresolvedReferences
         def imshow(inp, title=None, plt_ax=plt):
@@ -477,6 +472,9 @@ class TestBoringMNIST:
         show_some_predictions(loaders_dict, best_result["lmodule_best"])
 
     def __check_single_trial_result(self, result):
+        from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+        import pytorch_lightning as pl
+
         self.__check_result_common(result)
         trial_metrics = result["metrics"]
         assert isinstance(trial_metrics, TrialMetrics)
@@ -485,6 +483,9 @@ class TestBoringMNIST:
         assert isinstance(trainer, pl.Trainer)
 
     def __check_hyper_opt_result(self, result):
+        from ray import tune
+        import pandas as pd
+
         self.__check_result_common(result)
         analysis = result["analysis"]
         assert isinstance(analysis, tune.ExperimentAnalysis)
@@ -493,6 +494,8 @@ class TestBoringMNIST:
 
     @staticmethod
     def __check_result_common(result):
+        import pytorch_lightning as pl
+
         lmodule_best = result["lmodule_best"]
         assert isinstance(lmodule_best, pl.LightningModule)
         best_epoch = result["best_epoch"]

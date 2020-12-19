@@ -18,7 +18,23 @@ class TrialMetrics:
 
     metrics_last = property(get_metrics_last)
 
-    def plot(self):
+    @staticmethod
+    def create_axes(n_graphs, figsize=None):
+        SUBPLOT_WIDTH = 12
+        SUBPLOT_HEIGHT = 7
+        MAX_COLS = 2
+        n_cols = min(n_graphs, MAX_COLS)
+        n_rows = math.ceil(n_graphs / n_cols)
+        if figsize is None:
+            figsize = (SUBPLOT_WIDTH, SUBPLOT_HEIGHT * n_rows / n_cols)
+        fig = plt.figure(figsize=figsize)
+        ax_list = [None] * n_graphs
+        for i_graph in range(n_graphs):
+            ax_list[i_graph] = fig.add_subplot(n_rows, n_cols, i_graph + 1)
+        return ax_list
+
+    def plot(self, **kwargs):
+        #
         df = self.__metrics_df.set_index(["stage", "epoch"])
         stage_metric_pair_list = [x.split("_", 1) for x in df.columns]
         new_column_tuples = [
@@ -32,13 +48,9 @@ class TrialMetrics:
         metric_name_list = list(set(df.columns.get_level_values(0)))
         n_metrics = len(metric_name_list)
 
-        n_rows = int(math.sqrt(n_metrics))
+        ax_list = self.create_axes(n_metrics, **kwargs)
 
-        n_cols = math.ceil(n_metrics / n_rows)
-
-        fig = plt.figure(figsize=(4 * n_cols, 3 * n_rows))
-        for i_metric in range(n_metrics):
-            ax = fig.add_subplot(n_rows, n_cols, i_metric + 1)
+        for i_metric, ax in enumerate(ax_list):
             metric_name = metric_name_list[i_metric]
             metric_df = df.loc[:, metric_name]
             metric_df.columns = metric_df.columns.droplevel(0)

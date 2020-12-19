@@ -74,7 +74,6 @@ class Runner:
     def __init__(
         self,
         f_configure_dataloaders,
-        f_set_seed,
         pl_callbacks=None,
         pl_loggers=None,
         is_debug=False,
@@ -99,7 +98,6 @@ class Runner:
         #
         self.__pl_callbacks = pl_callbacks
         self.__f_configure_dataloaders = f_configure_dataloaders
-        self.__f_set_seed = f_set_seed
 
         self.__is_debug = is_debug
 
@@ -118,9 +116,6 @@ class Runner:
         raytune_loggers = raytune_loggers.copy()
         raytune_loggers.extend(self.wandb_integrator.get_raytune_loggers())
         return raytune_loggers
-
-    def __set_seed(self):
-        self.__f_set_seed()
 
     def __get_dataloaders(self, batch_size, n_workers):
         return self.__f_configure_dataloaders(batch_size, n_workers=n_workers)
@@ -159,8 +154,8 @@ class Runner:
         reval_test_metrics_dict = self.__revalidate_n_test_if_possible(
             lmodule_best,
             train_result["trainer"],
-            train_result["dataloaders_dict"],
             extra_config,
+            train_result["dataloaders_dict"],
             lprogress_bar_callback,
         )
 
@@ -185,7 +180,6 @@ class Runner:
             config,
             self.__f_configure_dataloaders,
             lmodule_builder,
-            self.__f_set_seed,
             checkpoint_dir=None,
             from_ray=False,
             is_debug=self.__is_debug,
@@ -225,7 +219,6 @@ class Runner:
             self.__train_with_checkpoint_drop_output,
             f_configure_dataloaders=self.__f_configure_dataloaders,
             lmodule_builder=lmodule_builder,
-            f_set_seed=self.__f_set_seed,
             extra_config=tune_config,
             pl_callbacks=self.__pl_callbacks,
             pl_loggers=self.__pl_loggers,
@@ -259,7 +252,7 @@ class Runner:
 
         #
         metrics_dict = self.__revalidate_n_test_if_possible(
-            lmodule_best, trainer, loaders_dict, tune_config, lprogress_bar_callback
+            lmodule_best, trainer, tune_config, loaders_dict, lprogress_bar_callback
         )
 
         return {
@@ -270,7 +263,12 @@ class Runner:
         }
 
     def __revalidate(
-        self, trainer, lmodule_best, val_dataloader, lprogress_bar_callback
+        self,
+        lmodule_best,
+        trainer,
+        extra_config,
+        val_dataloader,
+        lprogress_bar_callback,
     ):
         def __test_is_revalidate_name_metric_pretty(stage_list, metric_name):
             # stage can be 'train', 'validation' and 'test'
@@ -295,7 +293,7 @@ class Runner:
             __test_is_revalidate_name_stage_pretty
         )
 
-        self.__set_seed()
+        self.__set_seed(extra_config)
         val_result = trainer.test(
             lmodule_best, test_dataloaders=val_dataloader, verbose=False
         )
@@ -309,8 +307,8 @@ class Runner:
         )
         return reval_metrics_dict
 
-    def __test(self, trainer, lmodule_best, test_dataloader):
-        self.__set_seed()
+    def __test(self, lmodule_best, trainer, extra_config, test_dataloader):
+        self.__set_seed(extra_config)
         val_result = trainer.test(
             lmodule_best, test_dataloaders=test_dataloader, verbose=False
         )
@@ -319,15 +317,16 @@ class Runner:
         return reval_metrics_dict
 
     def __revalidate_n_test_if_possible(
-        self, lmodule_best, trainer, loaders_dict, extra_config, lprogress_bar_callback
+        self, lmodule_best, trainer, extra_config, loaders_dict, lprogress_bar_callback
     ):
         reval_metrics_dict = {}
         if "val_loader_name" in extra_config:
             val_loader_name = extra_config["val_loader_name"]
             if val_loader_name:
                 reval_metrics_dict = self.__revalidate(
-                    trainer,
                     lmodule_best,
+                    trainer,
+                    extra_config,
                     loaders_dict[val_loader_name],
                     lprogress_bar_callback,
                 )
@@ -337,8 +336,9 @@ class Runner:
             test_loader_name = extra_config["test_loader_name"]
             if test_loader_name:
                 test_metrics_dict = self.__test(
-                    trainer,
                     lmodule_best,
+                    trainer,
+                    extra_config,
                     loaders_dict[test_loader_name],
                 )
 
@@ -381,7 +381,10 @@ class Runner:
         lr_monitor = LearningRateMonitor(logging_interval="step")
         pl_callbacks.append(lr_monitor)
         #
-        if "ptl_trainer_patience" in extra_config and extra_config["ptl_trainer_patience"]:
+        if (
+            "ptl_trainer_patience" in extra_config
+            and extra_config["ptl_trainer_patience"]
+        ):
             es_callback = EarlyStopping(
                 monitor=extra_config["metric_to_optimize"],
                 patience=extra_config["ptl_trainer_patience"],
@@ -430,8 +433,9 @@ class Runner:
         )
         """
         #
+        is_trainer_determenistic = "seed" in extra_config
         trainer = pl.Trainer(
-            deterministic=True,
+            deterministic=is_trainer_determenistic,
             gpus=extra_config["gpus"],
             check_val_every_n_epoch=1,
             # progress_bar_refresh_rate = 0,
@@ -445,11 +449,15 @@ class Runner:
         return trainer
 
     @staticmethod
+    def __set_seed(extra_config):
+        if "seed" in extra_config:
+            pl.seed_everything(extra_config["seed"])
+
+    @staticmethod
     def __train_with_checkpoint(
         config,
         f_configure_dataloaders,
         lmodule_builder,
-        f_set_seed,
         checkpoint_dir=None,
         from_ray=True,
         is_debug=False,
@@ -489,6 +497,7 @@ class Runner:
 
         config = config.copy()
         #
+        # ----!!!----SET SEED TO MAKE EXPERIMENTS DETERMENISTIC----!!!----[FIRST TIME]
         loaders_dict = f_configure_dataloaders(
             config["batch_size"], n_workers=extra_config["cpu_per_trial"]
         )
@@ -496,9 +505,7 @@ class Runner:
         train_loader_name = extra_config["train_loader_name"]
         train_loader = loaders_dict[train_loader_name]
         #
-        config["n_train_steps"] = (
-            len(train_loader) * config["max_epochs"]
-        )
+        config["n_train_steps"] = len(train_loader) * config["max_epochs"]
         #
         if checkpoint_dir:
             #
@@ -514,7 +521,8 @@ class Runner:
             trainer.current_epoch = last_epoch
             #
         else:
-            #
+            # ----!!!----SET SEED TO MAKE EXPERIMENTS DETERMENISTIC----!!!----[SECOND TIME]
+            Runner.__set_seed(extra_config)
             lmodule = lmodule_builder.create(config)
         #
         fit_kwargs_dict = {}
@@ -524,8 +532,8 @@ class Runner:
             if val_loader_name:
                 fit_kwargs_dict["val_dataloaders"] = loaders_dict[val_loader_name]
         #
-        f_set_seed()
-        #
+        # ----!!!----SET SEED TO MAKE EXPERIMENTS DETERMENISTIC----!!!----[THIRD TIME]
+        Runner.__set_seed(extra_config)
         _ = trainer.fit(lmodule, train_loader, **fit_kwargs_dict)
 
         return {
