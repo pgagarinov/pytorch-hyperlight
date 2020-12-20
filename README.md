@@ -12,6 +12,7 @@
  * Integrated plotting of training, validation and testing stage metrics.
  * Pre-configured integration with Ray Tune for [ASHA](https://docs.ray.io/en/master/tune/api_docs/schedulers.html#tune-scheduler-hyperband) scheduler and [HyperOpt](https://docs.ray.io/en/latest/tune/api_docs/suggestion.html#hyperopt-tune-suggest-hyperopt-hyperoptsearch) optimization algorithm for out of the box hyper-parameter tuning.
  * Loggging the training progress on console (via [tabule](https://github.com/astanin/python-tabulate) library)
+ * Pre-configured integration with WandB that works for both single runs and hyper-parameter optimization runs (via Ray Tune)
  
 ## Assumptions
 As most of opionated frameworks PyTorch Hyperlight makes few assumptions about the way you organize your code:
@@ -23,6 +24,8 @@ As most of opionated frameworks PyTorch Hyperlight makes few assumptions about t
      * "epoch" or "step" ("train_f1_epoch" for example) as a suffix
      
 * DataLoaders should be returned by a function as a dictionary. The function should have "batch_size" as a regular parameter and "n_workers" as a key word parameter.
+* WandB API key should be in the plain text file `~/.wandb_api_key`
+
 
 ## Getting started
 
