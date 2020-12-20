@@ -360,12 +360,14 @@ best_results["lmodule_best"]
 ```python
 best_result["metrics"].plot()
 ```
+<img src="products/pytorch-hyperlight/docs/_images/ph_plot.png" width="800px">
 
 * Access the trial metrics as Pandas dataframe:
 
 ```python
 best_result["metrics"].df
 ```
+<img src="products/pytorch-hyperlight/docs/_images/ph_df.png" width="800px">
 
 * the last observed metrics as Pandas series
 
