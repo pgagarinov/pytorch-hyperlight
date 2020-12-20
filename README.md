@@ -38,7 +38,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
 ## Getting started
 
-### Define `configure_dataloaders` function that returns your dataloaders as a dictionary:
+#### 1. Define `configure_dataloaders` function that returns your dataloaders as a dictionary:
 <details>
   <summary>Click to expand!</summary>
   
@@ -109,7 +109,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
   ```
 </details>
 
-### Define your PyTorch-Lightning module and callbacks (if any):
+#### 2. Define your PyTorch-Lightning module and callbacks (if any):
 <details>
   <summary>Click to expand!</summary>
   
@@ -284,7 +284,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
    ```
 </details>
 
-### Define your model hyper-parameters and extra parameters that control the way training, validation, testing and hyper-parameter tuning is performed:
+#### 3. Define your model hyper-parameters and extra parameters that control the way training, validation, testing and hyper-parameter tuning is performed:
  
   ```python
    from ray import tune
@@ -339,7 +339,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
    }
    ```
 
-### Create the experiment/trial runner 
+#### 4. Create the experiment/trial runner 
 
   ```python
    from pytorch_hyperlight import Runner
@@ -351,33 +351,35 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
    )
    ```
 
-* Run a single trial (combination of training, validation, revalidation and testing stages), plot the trial metrics and access them as Pandas dataframe:
+#### 5. Run a single trial (combination of training, validation, revalidation and testing stages), plot the trial metrics and access them as Pandas dataframe:
 
 ```python
 best_result = runner.run_single_trial(LMODULE_CLASS, CONFIG, TUNE_CONFIG)
 ```
 
-* Access the best model
+#### 6. Check the results of single trial
+
+##### Access the best model
 
 ```python
 best_results["lmodule_best"]
 ```
 
-* Plot the trial metrics:
+##### Plot the trial metrics
 
 ```python
 best_result["metrics"].plot()
 ```
 <img src="products/pytorch-hyperlight/docs/_images/ph_plot.png" width="800px">
 
-* Access the trial metrics as Pandas dataframe:
+##### Access the trial metrics as Pandas dataframe:
 
 ```python
 best_result["metrics"].df
 ```
 <img src="products/pytorch-hyperlight/docs/_images/ph_df.png" width="800px">
 
-* the last observed metrics as Pandas series
+##### the last observed metrics as Pandas series
 
 ```python
 best_result["metrics"].series_last
@@ -385,7 +387,7 @@ best_result["metrics"].series_last
 
 
 
-* Run a hyper-parameter search by defining Ray Tune search space and calling `run_hyper_opt` method of the runner
+#### 7. Run a hyper-parameter search by defining Ray Tune search space and calling `run_hyper_opt` method of the runner
 
 ```python
 SEARCH_SPACE_CONFIG = {
@@ -404,19 +406,21 @@ best_result = ptl_ray_runner.run_hyper_opt(
 )
 ```
 
-* Access the best model
+#### 8. Check the results of single trial
+
+##### Access the best model
 
 ```python
 best_results["lmodule_best"]
 ```
 
-* Check the last observed metrics for the best model:
+##### Check the last observed metrics for the best model:
 
 ```python
 best_result["metrics_last"]
 ```
 
-* Access Ray Tune [ExperimentAnalysis](https://docs.ray.io/en/master/tune/api_docs/analysis.html#experimentanalysis-tune-experimentanalysis) object:
+##### Access Ray Tune [ExperimentAnalysis](https://docs.ray.io/en/master/tune/api_docs/analysis.html#experimentanalysis-tune-experimentanalysis) object:
 
 ```python
 best_result["analysis"]
