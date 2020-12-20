@@ -38,8 +38,10 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
 ## Getting started
 
-* Define the function that returns your dataloaders as a dictionary:
- 
+* Define `configure_dataloaders` function that returns your dataloaders as a dictionary:
+
+<details>
+   <summary>Click to expand</summary>
 ```python
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
@@ -105,6 +107,8 @@ def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
 
     return result_dict
 ```
+</details>
+
 * Define your PyTorch-Lightning module and callbacks (if any):
 
 ```python
