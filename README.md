@@ -35,6 +35,21 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 * DataLoaders should be returned by a function as a dictionary. The function should have "batch_size" as a regular parameter and "n_workers" as a key word parameter. They reason PyTorch Hyperlight doesn't rely on LightningDataModule from PyTorch Lightning is LightningDataModule might contains some data that would have to be serialized in the master process and de-serialized in each Ray Tune worker (workers are responsible for running hyper-parameter search trials).
 * WandB API key should be in the plain text file `~/.wandb_api_key`
 
+## Installation
+PyTorch Lightning doesn't have a pip package just yet so please run the following command to install it directly from git
+```bash
+# Step 0. make sure you are in either conda environment or virtual env
+# Step 1. Git clone a specific release by running (here we assume you want relese 0.1.1) 
+git clone --branch 0.1.1 https://github.com/pgagarinov/pytorch-hyperlight.git --single-branch
+# or clone the latest version via
+git clone https://github.com/pgagarinov/pytorch-hyperlight.git --single-branch
+# Step 2. cd to the cloned repo right to pytorch-lightning folder
+cd ./pytorch-hyperlight/products/pytorch-hyperlight/
+# Step 3. install pytorch_hyperlight package via
+pip install -e .
+# Finally you can import pytorch_hyperlight from any python file inside your conda env or virtualenv
+```
+
 
 ## Getting started
 
