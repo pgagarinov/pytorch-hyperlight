@@ -284,7 +284,7 @@ class TestBoringMNIST:
                 "val_acc_epoch",
             ],  # Ray
             "metric_opt_mode": "max",  # Ray + PTL Trainer
-            "cpu_per_trial": 3,  # Ray + DataLoaders
+            "cpu_per_trial": 3,  # Ray Tune + used as n_workers in create_dataloaders function
             "gpu_per_trial": GPU_PER_TRIAL,  # for Ray Tune
             "n_checkpoints_to_keep": 1,  # for Ray Tune
             "grace_period": 6,  # for Ray Tune
@@ -296,7 +296,7 @@ class TestBoringMNIST:
             "train_loader_name": "train_ldr",
             "val_loader_name": "val_ldr",
             "test_loader_name": "test_ldr",
-            "batch_size_main": 32,
+            "batch_size_main": CONFIG["batch_size"],
             "gpus": -1,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU, 
                 # >=2 - use multiple GPUs
         }

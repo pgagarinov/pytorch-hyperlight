@@ -355,7 +355,8 @@ def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
        "warmup": 200,  # For LinearSchedulerWihtWarmup
        "gradient_clip_val": 0,
        "max_epochs": 30,  # the actual number can be less due to early stopping
-       "batch_size": 64, 
+       "batch_size": 64, # we treat batch_size as a hyper-parameter 
+       #    and therefore it is specified here in CONFIG, not in EXTRA_CONFIG
        "n_classes": N_CLASSES,
        "unfreeze_epochs": [0, 1]  # 2-phase unfreeze, 
        #    unfreeze the tip of the tail at the start of epoch 0,
@@ -370,8 +371,8 @@ def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
            "val_f1_epoch",
            "val_acc_epoch",
        ],  # for Ray Tune
-       "metric_opt_mode": "max",  # Ray + PTL Trainer
-       "cpu_per_trial": 3,  # Ray + DataLoaders
+       "metric_opt_mode": "max",  # Ray Tune + PTL Trainer
+       "cpu_per_trial": 3,  # Ray Tune + used as n_workers in create_dataloaders function
        "gpu_per_trial": GPU_PER_TRIAL,  # for Ray Tune
        "n_checkpoints_to_keep": 1,  # for Ray Tune
        "grace_period": 6,  # for Ray Tune
@@ -383,7 +384,7 @@ def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
        "train_loader_name": "train_loader",
        "val_loader_name": "val_loader",
        "test_loader_name": "test_loader",
-       "batch_size_main": 32,  # batch size for revalidation and test phases 
+       "batch_size_main": CONFIG["batch_size"],  # batch size for revalidation and test phases 
        #    that run in the main process after all Ray Tune child processes are finished
        "gpus": -1, # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU, 
            # >=2 - use multiple GPUs
