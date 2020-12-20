@@ -39,8 +39,17 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 ## Getting started
 
 #### 1. Define `configure_dataloaders` function that returns your dataloaders as a dictionary:
+
+```python
+
+def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
+   //your code here
+```
+
 <details>
-  <summary>Source code</summary>
+  <summary>
+     The full example (click to expand)
+   </summary>
   
   ```python
    import pytorch_lightning as pl
@@ -110,8 +119,60 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 </details>
 
 #### 2. Define your PyTorch-Lightning module and callbacks (if any):
+
+```python
+   class LitBoringMNIST(pl.LightningModule):
+       def __init__(self, hparams):
+       // your code here
+
+       def freeze(self):
+           for param in self.model.parameters():
+               param.requires_grad = False
+
+       def unfreeze(self):
+           for param in self.model.parameters():
+               param.requires_grad = True
+
+       def unfreeze_tail(self, ind_layer):
+           // your code here
+
+       def configure_optimizers(self):
+           optimizer = //your code here
+
+           scheduler = //your code here
+           )
+           return [optimizer], [
+               {"scheduler": scheduler, "interval": "step", "frequency": 1}
+           ]
+
+       def training_step(self, batch, batch_idx):
+           // make forward pass, log some metrics
+
+       def test_step(self, batch, batch_idx):
+           // make forward pass, log some metrics
+
+       def validation_step(self, batch, batch_idx):
+           // make forward pass, log some metrics
+
+   // just an example
+   class UnfreezeModelTailCallback(Callback):
+       def __init__(self, epoch_vec):
+           super().__init__()
+           self.epoch_vec = epoch_vec
+
+       def on_epoch_start(self, trainer, pl_module):
+           if trainer.current_epoch <= self.epoch_vec[0]:
+               pl_module.unfreeze_tail(0)
+           elif trainer.current_epoch <= self.epoch_vec[1]:
+               pl_module.unfreeze_tail(1)
+           else:
+               pl_module.unfreeze()
+```
+
 <details>
-  <summary>Source code</summary>
+  <summary>
+     The full example (click to expand)
+   </summary>
   
   ```python
    import pytorch_lightning as pl
@@ -333,6 +394,8 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
   ```python
    from pytorch_hyperlight import Runner
+
+   pl_callbacks = [UnfreezeModelTailCallback(CONFIG["unfreeze_epochs"])]
 
    runner = Runner(
        configure_dataloaders,
