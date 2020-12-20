@@ -327,16 +327,6 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
        "gpus": -1, # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU, 
            # >=2 - use multiple GPUs
    }
-
-   SEARCH_SPACE_CONFIG = {
-       "unfreeze_epochs": [0, 1],
-       "lr": tune.uniform(1e-5, 1e-4),
-       "warmup": tune.choice([200, 500, 600, 1000]),
-       "gradient_clip_val": 0,
-       "max_epochs": tune.choice([10, 20, 30]),
-       "batch_size": tune.choice([16, 32, 64]),
-       "n_classes": N_CLASSES,
-   }
    ```
 
 #### 4. Create the experiment/trial runner 
