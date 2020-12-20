@@ -1,29 +1,38 @@
 # PyTorch Hyperlight
 
-**The opionated micro-framework built as a thin [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) wrapper built to push the boundaries of simplicity even futher.**
+**The opinionated micro-framework built as a thin [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) wrapper built to push the boundaries of simplicity even further.**
 
 
  * *Neither the author nor the project do not have any relation to PyTorch-Lightning Team or Ray project.*
  * *PyTorch Hyperlight is not a fork as it does not modify (and there are no such plans) any of PyTorch-Lightning or Ray Tune code and is built on top of the forementioned frameworks.*
 
+## PyTorch Hyperlight key principles
+ * *No wheel reinvention* Parts of PyTorch Lightning or Ray Tune that already provide simple enough interfaces are used as is. PyTorch Hyperlight just makes use of those frameworks easier by minimizing an amount of boilerplate code.
+ * *Opinionated approach* that doesn't try to be flexible for every possible task. Instead PyTorch Hyperlight tries to address fewer usecase better by providing pre-configured integrations and functionaly out of the box.
+ * *Minimalistic user-facing API* allows to do research by using a single `Runner` class that is similar to PyTorch Lightning's `Trainer` but is a higher-level abstraction.
+ * *Expect both model and data as definitions, not as data*. All this is done to minimize problems with Ray Tune which runs trails in separate processes. For
+    * training/validation data this means that Hyperlight API expects a user to provide *a function that returns DataLoaders*, not ready-to-use DataLoader. Of course you can attach data to your functions with `functools.partion` but this is not recommended.
+    * model it means that Hyperlight API (namely `Runner`'s methods) expects a user to provide a class defining a model, not the model itself.
 
 ## Features 
  * All hyper-parameters are defined in a single dictionary.
  * Integrated plotting of training, validation and testing stage metrics.
  * Pre-configured integration with Ray Tune for [ASHA](https://docs.ray.io/en/master/tune/api_docs/schedulers.html#tune-scheduler-hyperband) scheduler and [HyperOpt](https://docs.ray.io/en/latest/tune/api_docs/suggestion.html#hyperopt-tune-suggest-hyperopt-hyperoptsearch) optimization algorithm for out of the box hyper-parameter tuning.
- * Loggging the training progress on console (via [tabule](https://github.com/astanin/python-tabulate) library)
+ * Logging the training progress on console (via [tabule](https://github.com/astanin/python-tabulate) library)
  * Pre-configured integration with WandB that works for both single runs and hyper-parameter optimization runs (via Ray Tune)
  
 ## Assumptions
-As most of opionated frameworks PyTorch Hyperlight makes few assumptions about the way you organize your code:
+As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about the way you organize your code:
 
 * You are familiar with [PyTorch-Lightning](https://pytorchlightning.ai/), if not - refer to [PyTorch Lightning awesome documentation](https://pytorch-lightning.readthedocs.io/en/stable/).
+
+* Runner
 
 * Metrics that you log from your PyTorch Lightning module should have pre-defined prefixes and suffixes:
      * "val", "train" or "test" ("val_f1_step" for example) as a prefix
      * "epoch" or "step" ("train_f1_epoch" for example) as a suffix
      
-* DataLoaders should be returned by a function as a dictionary. The function should have "batch_size" as a regular parameter and "n_workers" as a key word parameter.
+* DataLoaders should be returned by a function as a dictionary. The function should have "batch_size" as a regular parameter and "n_workers" as a key word parameter. They reason PyTorch Hyperlight doesn't rely on LightningDataModule from PyTorch Lightning is LightningDataModule might contains some data that would have to be serialized in the master process and de-serialized in each Ray Tune worker (workers are responsible for running hyper-parameter search trials).
 * WandB API key should be in the plain text file `~/.wandb_api_key`
 
 
