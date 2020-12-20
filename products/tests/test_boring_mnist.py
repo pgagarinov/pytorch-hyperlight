@@ -1,3 +1,17 @@
+# Copyright Peter Gagarinov.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import pytest
 
 
@@ -133,7 +147,7 @@ class TestBoringMNIST:
 
         # %%
 
-        class Backbone(torch.nn.Module):
+        class BoringMNIST(torch.nn.Module):
             def __init__(self, n_classes):
                 super().__init__()
                 self.l0 = torch.nn.Linear(28 * 28, 256)
@@ -149,14 +163,14 @@ class TestBoringMNIST:
 
         # %%
 
-        class LitBackbone(pl.LightningModule):
+        class LitBoringMNIST(pl.LightningModule):
             def __init__(self, hparams):
                 super().__init__()
                 self.hparams = hparams
                 #
                 n_classes = self.hparams.n_classes
                 #
-                model = Backbone(n_classes)
+                model = BoringMNIST(n_classes)
                 #
                 self.model = model
                 self.train_metric_calc = LitMetricsCalc("train", num_classes=n_classes)
@@ -247,22 +261,22 @@ class TestBoringMNIST:
         # %%
 
         N_CLASSES = loaders_dict["n_classes"]
-        LMODULE_CLASS = LitBackbone
+        LMODULE_CLASS = LitBoringMNIST
         GPU_PER_TRIAL = 0.3 * torch.cuda.is_available()
         # %%
 
         CONFIG = {
             "lr": 6.2e-5,  # Initial learning rate
-            "warmup": 200,  # for StepLR LR scheduler
+            "warmup": 200,  # For LinearSchedulerWihtWarmup
             "gradient_clip_val": 0,
-            "max_epochs": 30,  # the actual number can be less due to early stopping
-            "batch_size": 64,  # the maximum for this model and RTX 2070,
+            "max_epochs": 30,
+            "batch_size": 64,
             "n_classes": N_CLASSES,
             "unfreeze_epochs": [0, 1],  #
         }
 
         TUNE_CONFIG = {
-            "seed": 16,
+            "seed": 16,  # just remove this if you do not want determenistic behavior
             "metric_to_optimize": "val_f1_epoch",  # Ray + PTL Trainer
             "ray_metrics_to_show": [
                 "val_loss_epoch",
@@ -271,22 +285,20 @@ class TestBoringMNIST:
             ],  # Ray
             "metric_opt_mode": "max",  # Ray + PTL Trainer
             "cpu_per_trial": 3,  # Ray + DataLoaders
-            "gpu_per_trial": GPU_PER_TRIAL,  # Ray
-            "n_checkpoints_to_keep": 1,  # Ray
-            "grace_period": 6,  # Ray
-            "epoch_upper_limit": 45,  # Ray
-            "n_samples": 40,  # Ray
-            # "n_samples": 3,
-            "ptl_early_stopping_patience": 7,  # PTL Trainer
-            "ptl_early_stopping_grace_period": 7,  # PTL Trainer
-            # "ptl_precision": 16,  # PTL Trainer
-            "ptl_precision": 32,  # PTL Trainer
+            "gpu_per_trial": GPU_PER_TRIAL,  # for Ray Tune
+            "n_checkpoints_to_keep": 1,  # for Ray Tune
+            "grace_period": 6,  # for Ray Tune
+            "epoch_upper_limit": 45,  # for Ray Tune
+            "n_samples": 40,  # for Ray Tune
+            "ptl_early_stopping_patience": 7,  # for PTL Trainer
+            "ptl_early_stopping_grace_period": 7,  # for PTL Trainer
+            "ptl_precision": 32,  # or 16, for PTL Trainer
             "train_loader_name": "train_ldr",
             "val_loader_name": "val_ldr",
             "test_loader_name": "test_ldr",
             "batch_size_main": 32,
-            # batch size for validation runs in the main process once all Ray Tune trials are finished
-            "gpus": -1,
+            "gpus": -1,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU, 
+                # >=2 - use multiple GPUs
         }
 
         if FAST_DEV_RUN:
@@ -295,13 +307,13 @@ class TestBoringMNIST:
             TUNE_CONFIG["gpu_per_trial"] = GPU_PER_TRIAL
 
         SEARCH_SPACE_CONFIG = {
-            "unfreeze_epochs": [0, 1],
             "lr": tune.uniform(1e-5, 1e-4),
             "warmup": tune.choice([200, 500, 600, 1000]),
             "gradient_clip_val": 0,
             "max_epochs": tune.choice([10, 20, 30]),
             "batch_size": tune.choice([16, 32, 64]),
             "n_classes": N_CLASSES,
+            "unfreeze_epochs": [0, 1]
         }
         if FAST_DEV_RUN:
             SEARCH_SPACE_CONFIG["max_epochs"] = 2
@@ -476,10 +488,12 @@ class TestBoringMNIST:
     def __check_single_trial_result(self, result):
         from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
         import pytorch_lightning as pl
+        import pandas as pd
 
         self.__check_result_common(result)
         trial_metrics = result["metrics"]
         assert isinstance(trial_metrics, TrialMetrics)
+        assert isinstance(trial_metrics.df, pd.DataFrame)
         trial_metrics.plot()
         trainer = result["trainer"]
         assert isinstance(trainer, pl.Trainer)

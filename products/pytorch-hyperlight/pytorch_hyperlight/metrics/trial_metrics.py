@@ -1,3 +1,17 @@
+# Copyright Peter Gagarinov.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
@@ -8,15 +22,15 @@ class TrialMetrics:
         self.__metrics_df = metrics_df
         self.__metrics_last_ser = metrics_last_ser
 
-    def get_metrics(self):
+    def get_df(self):
         return self.__metrics_df.copy()
 
-    metrics = property(get_metrics)
+    df = property(get_df)
 
-    def get_metrics_last(self):
+    def get_series_last(self):
         return self.__metrics_last_ser.copy()
 
-    metrics_last = property(get_metrics_last)
+    series_last = property(get_series_last)
 
     @staticmethod
     def create_axes(n_graphs, figsize=None):
