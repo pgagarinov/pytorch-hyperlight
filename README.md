@@ -425,3 +425,7 @@ best_result["metrics_last"]
 ```python
 best_result["analysis"]
 ```
+
+# Examples
+## Jupyter notebooks
+1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist.ipynb)
