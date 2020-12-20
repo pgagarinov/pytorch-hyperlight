@@ -40,7 +40,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
 #### 1. Define `configure_dataloaders` function that returns your dataloaders as a dictionary:
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Source code</summary>
   
   ```python
    import pytorch_lightning as pl
@@ -111,7 +111,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
 #### 2. Define your PyTorch-Lightning module and callbacks (if any):
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Source code</summary>
   
   ```python
    import pytorch_lightning as pl
