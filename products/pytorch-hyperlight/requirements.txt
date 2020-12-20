@@ -4,3 +4,4 @@ hyperopt # ==0.2.5
 tqdm # ==4.54.1
 pandas # ==1.1.5
 wandb # ==0.10.12
+ray # ==1.0.1post1
