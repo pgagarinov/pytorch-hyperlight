@@ -29,4 +29,8 @@ class TestExampleNotebooks:
         )
         with tempfile.TemporaryDirectory() as tmp_dir_name:
             out_file = Path(tmp_dir_name) / FILE_NAME
-            pm.execute_notebook(notebook_filename, out_file, {"USAGE_MODE": usage_mode, 'FAST_DEV_RUN': True})
+            pm.execute_notebook(
+                notebook_filename,
+                out_file,
+                {"USAGE_MODE": usage_mode, "FAST_DEV_RUN": True},
+            )

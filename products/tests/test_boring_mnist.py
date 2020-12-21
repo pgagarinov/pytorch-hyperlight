@@ -297,8 +297,8 @@ class TestBoringMNIST:
             "val_loader_name": "val_ldr",
             "test_loader_name": "test_ldr",
             "batch_size_main": CONFIG["batch_size"],
-            "gpus": -1,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU, 
-                # >=2 - use multiple GPUs
+            "gpus": -1,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU,
+            # >=2 - use multiple GPUs
         }
 
         if FAST_DEV_RUN:
@@ -313,7 +313,7 @@ class TestBoringMNIST:
             "max_epochs": tune.choice([10, 20, 30]),
             "batch_size": tune.choice([16, 32, 64]),
             "n_classes": N_CLASSES,
-            "unfreeze_epochs": [0, 1]
+            "unfreeze_epochs": [0, 1],
         }
         if FAST_DEV_RUN:
             SEARCH_SPACE_CONFIG["max_epochs"] = 2

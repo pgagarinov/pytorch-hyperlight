@@ -395,11 +395,11 @@ class Runner:
         lr_monitor = LearningRateMonitor(logging_interval="step")
         pl_callbacks.append(lr_monitor)
         #
-        if (
-            "ptl_early_stopping_patience" in extra_config
-        ):
+        if "ptl_early_stopping_patience" in extra_config:
             if "ptl_early_stopping_grace_period" in extra_config:
-                es_kwargs = {'grace_period': extra_config['ptl_early_stopping_grace_period']}
+                es_kwargs = {
+                    "grace_period": extra_config["ptl_early_stopping_grace_period"]
+                }
             else:
                 es_kwargs = {}
             #
@@ -409,7 +409,7 @@ class Runner:
                 verbose=True,
                 mode=extra_config["metric_opt_mode"],
                 min_delta=0,
-                **es_kwargs
+                **es_kwargs,
             )
             pl_callbacks.append(es_callback)
         #

@@ -15,6 +15,56 @@
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
+import itertools
+
+TRAIN_SUFFIX = "train"
+VAL_SUFFIX = "val"
+REVAL_SUFFIX = "reval"
+TEST_SUFFIX = "test"
+MARKER_LIST = ("o", "+", "p", "<", "*", "^", "s", "d", "x", "1", "2", ">")
+
+
+def get_stage_suffix(inp_str):
+    if inp_str.startswith(TRAIN_SUFFIX):
+        return TRAIN_SUFFIX
+    if inp_str.startswith(REVAL_SUFFIX):
+        return REVAL_SUFFIX
+    if inp_str.startswith(VAL_SUFFIX):
+        return VAL_SUFFIX
+    if inp_str.startswith(TEST_SUFFIX):
+        return TEST_SUFFIX
+    return None
+
+
+def get_group_name(inp_str, suffix):
+    return inp_str[len(suffix) :].split("_", 1)[0]
+
+
+def get_df_column_styles(df):
+
+    marker_iter = itertools.cycle(MARKER_LIST)
+    style_extra_list = [""] * len(df.columns)
+    group_name_list = [""] * len(df.columns)
+    for i_col, c in enumerate(df.columns):
+
+        suffix = get_stage_suffix(c)
+        if suffix == TRAIN_SUFFIX:
+            style_extra_list[i_col] = "-"
+
+        if suffix is not None:
+            group_name_list[i_col] = get_group_name(c, suffix)
+
+    group_markers_dict = {k: next(marker_iter) for k in set(group_name_list)}
+
+    style_list = [""] * len(df.columns)
+
+    for i_col, c in enumerate(df.columns):
+        group_name = group_name_list[i_col]
+        style_list[i_col] = (
+            group_markers_dict[group_name] + "-" + style_extra_list[i_col]
+        )
+
+    return style_list
 
 
 class TrialMetrics:
@@ -33,10 +83,10 @@ class TrialMetrics:
     series_last = property(get_series_last)
 
     @staticmethod
-    def create_axes(n_graphs, figsize=None):
-        SUBPLOT_WIDTH = 12
-        SUBPLOT_HEIGHT = 7
-        MAX_COLS = 2
+    def create_axes(n_graphs, figsize=None, max_cols=2):
+        SUBPLOT_WIDTH = 20
+        SUBPLOT_HEIGHT = 12
+        MAX_COLS = max_cols
         n_cols = min(n_graphs, MAX_COLS)
         n_rows = math.ceil(n_graphs / n_cols)
         if figsize is None:
@@ -69,5 +119,5 @@ class TrialMetrics:
             metric_df = df.loc[:, metric_name]
             metric_df.columns = metric_df.columns.droplevel(0)
             metric_df.index = metric_df.index.droplevel(0)
-            metric_df.plot(linestyle="-", marker=".", grid=True, ax=ax)
-        plt.tight_layout()
+            style_list = get_df_column_styles(metric_df)
+            metric_df.plot(style=style_list, ms=5, grid=True, ax=ax)
