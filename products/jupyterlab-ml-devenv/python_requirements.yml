@@ -18,6 +18,7 @@ dependencies:
   - pytorch::pytorch=1.7.0
   - pytorch::torchvision=0.8.1
   - pytorch::torchtext=0.8.0
+  - pytorch:torchaudio=0.7.0
   - cudatoolkit=10.2
   - matplotlib=3.3.2
   - seaborn=0.11.0
@@ -82,4 +83,6 @@ dependencies:
     - pytest==6.2.1
     - coverage==5.3
     - pytest-xdist==2.2.0
+    - timit-utils==0.9.0
+    - librosa==0.8.0
   # - pipdeeptree==1.0.0  # doesn't play nicely with conda environment
