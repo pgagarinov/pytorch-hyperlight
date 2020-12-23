@@ -37,12 +37,14 @@ def run_tune_experiment_asha_hyperopt(
 
     exp_config = search_space_config.copy()
 
+    asha_kwargs = {k: v for k, v in tune_config.items() if k == 'grace_period'}
+    #
     asha_scheduler = ASHAScheduler(
         time_attr="training_iteration",
         max_t=tune_config["epoch_upper_limit"],
-        grace_period=tune_config["grace_period"],
         reduction_factor=3,
         brackets=1,
+        **asha_kwargs
     )
 
     reporter = CLIReporter(

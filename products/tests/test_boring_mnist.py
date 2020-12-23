@@ -287,11 +287,10 @@ class TestBoringMNIST:
             "cpu_per_trial": 3,  # Ray Tune + used as n_workers in create_dataloaders function
             "gpu_per_trial": GPU_PER_TRIAL,  # for Ray Tune
             "n_checkpoints_to_keep": 1,  # for Ray Tune
-            "grace_period": 6,  # for Ray Tune
+            "grace_period": 7,  # for both PTL Trainer and Ray Tune scheduler
             "epoch_upper_limit": 45,  # for Ray Tune
             "n_samples": 40,  # for Ray Tune
             "ptl_early_stopping_patience": 7,  # for PTL Trainer
-            "ptl_early_stopping_grace_period": 7,  # for PTL Trainer
             "ptl_precision": 32,  # or 16, for PTL Trainer
             "train_loader_name": "train_ldr",
             "val_loader_name": "val_ldr",
@@ -368,7 +367,7 @@ class TestBoringMNIST:
 
         if not is_test:
             del tune_config["test_loader_name"]
-            del tune_config["ptl_early_stopping_grace_period"]
+            del tune_config["grace_period"]
         return tune_config
 
     @pytest.mark.parametrize(

@@ -398,7 +398,7 @@ class Runner:
         if "ptl_early_stopping_patience" in extra_config:
             if "ptl_early_stopping_grace_period" in extra_config:
                 es_kwargs = {
-                    "grace_period": extra_config["ptl_early_stopping_grace_period"]
+                    "grace_period": extra_config["grace_period"]
                 }
             else:
                 es_kwargs = {}
