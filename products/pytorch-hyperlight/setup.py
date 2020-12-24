@@ -27,8 +27,8 @@ reqs = [str(ir.requirement) for ir in install_reqs]
 
 setup(
     name=NAME,
-    version="0.1.3",
-    description="PyTorch HyperLight",
+    version="0.1.4",
+    description="PyTorch Hyperlight is the opinionated micro-framework built as a thin wrapper around PyTorch-Lightning and Ray Tune frameworks to push the boundaries of simplicity even further.",
     long_description="",
     author="Peter Gagarinov",
     author_email="Peter Gagarinov <pgagarinov@gmail.com>",
