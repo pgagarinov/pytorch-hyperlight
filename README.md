@@ -38,8 +38,8 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 ## Installation
 PyTorch Lightning doesn't have a pip package just yet so please run the following command to install it directly from git
 
-### Pip
-`pip install pytorch_hyperlight`.
+#### Pip
+Just run `pip install pytorch_hyperlight`.
 
 
 
