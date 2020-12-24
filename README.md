@@ -38,27 +38,8 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 ## Installation
 PyTorch Lightning doesn't have a pip package just yet so please run the following command to install it directly from git
 
-### Prerequisites
-#### Colab only
-For Colab please make sure to run `pip install -U setuptools pip` before proceeding to next steps
-
-### Step 1. 
-Git clone a specific release by running (here we assume you want relese 0.1.1) 
-`git clone --branch 0.1.1 https://github.com/pgagarinov/pytorch-hyperlight.git --single-branch`
-or clone the latest version via
-`git clone https://github.com/pgagarinov/pytorch-hyperlight.git --single-branch`
-### Step 2. 
-cd to the cloned repo right to pytorch-lightning folder
-
-`cd ./pytorch-hyperlight/products/pytorch-hyperlight/`
-### Step 3. 
-install pytorch_hyperlight package via
-
-`pip install -e .`
-### Step 4
-you can now import pytorch_hyperlight from any python file inside your conda env or virtualenv:
-
-`from pytorch_hyperlight import Runner`
+### Pip
+`pip install pytorch_hyperlight`.
 
 
 
