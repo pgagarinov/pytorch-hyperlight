@@ -27,7 +27,7 @@ reqs = [str(ir.requirement) for ir in install_reqs]
 
 setup(
     name=NAME,
-    version="0.1.1dev",
+    version="0.1.3",
     description="PyTorch HyperLight",
     long_description="",
     author="Peter Gagarinov",

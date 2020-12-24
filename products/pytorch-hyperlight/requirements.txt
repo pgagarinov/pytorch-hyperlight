@@ -1,4 +1,4 @@
-pytorch-lightning==1.1.1 # dependency on specific version of pytorch-lightning is quite strong
+pytorch-lightning==1.1.2 # dependency on specific version of pytorch-lightning is quite strong
 tabulate # ==0.8.7
 hyperopt # ==0.2.5
 tqdm # ==4.54.1

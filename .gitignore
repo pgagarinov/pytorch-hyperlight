@@ -12,3 +12,5 @@ screenlog.*
 mlruns
 products/examples/wandb
 *.log
+build
+dist
