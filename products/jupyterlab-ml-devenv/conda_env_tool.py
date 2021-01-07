@@ -115,6 +115,7 @@ def pip_install_modules_by_relpath(module_relpath_list: List[Path]) -> None:
 
 
 def jlab_install_extensions(extension_name_list) -> None:
+    """
     __JUPYTERLAB_EXTENSION_INSTALL_COMMAND = ["jupyter", "labextension", "install"]
     os.environ["NODE_OPTIONS"] = "--max-old-space-size=4096"
 
@@ -126,7 +127,7 @@ def jlab_install_extensions(extension_name_list) -> None:
     exec_cmd_or_exit(["jupyter", "lab", "build", "--minimize=False"])
 
     del os.environ["NODE_OPTIONS"]
-
+    """
 
 def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
     out_stream: tempfile.NamedTemporaryFile = tempfile.NamedTemporaryFile(
@@ -266,15 +267,6 @@ def update(conda_env_path, mode, debug=False):
     if cmd_run_param_dict["jlab_install_extensions"]:
         jlab_install_extensions(
             [
-                "@jupyter-widgets/jupyterlab-manager@2.0.0",
-                "@ryantam626/jupyterlab_code_formatter@1.3.8",
-                "@krassowski/jupyterlab-lsp@2.1.1",
-                "@jupyterlab/git@0.22.3",
-                "@jupyterlab/debugger@0.3.4",
-                "jupyter-matplotlib@0.7.4",
-                # "jupyterlab_tensorboard@0.2.1",
-                # "jupyterlab-jupytext@1.2.3",
-                "qgrid2@1.1.3",
             ]
         )
 
