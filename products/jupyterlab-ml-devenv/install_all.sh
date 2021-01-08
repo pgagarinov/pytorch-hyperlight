@@ -14,7 +14,38 @@
 
 #!/bin/bash
 set -e
-python ./conda_env_tool.py update all
+MSGCOLOR=`tput setaf 48`
+NOCOLOR=`tput sgr0`
+
+printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel...${NOCOLOR}\n"
+# we install conda so that it is not installed later in setup.py
+# because if conda is installed via pip it will make conda 
+# not functional as a stand-alone command (which is what we need) 
+conda install -c conda-forge conda
+printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel: done${NOCOLOR}\n\n"
+
+printf "${MSGCOLOR}Installing jupyter_mldevenv package...${NOCOLOR}\n"
+pip install -e .
+printf "${MSGCOLOR}Installing jupyter_mldevenv package: done${NOCOLOR}\n\n"
+
+printf "${MSGCOLOR}Installing all dependencies for Jupyter ML development environment...${NOCOLOR}\n"
+mlenvtool conda_env_cur_update all
+printf "${MSGCOLOR}Installing all dependencies for Jupyter ML development environment: done${NOCOLOR}\n\n"
+
+
+printf "${MSGCOLOR}Installing enabling jupyterlab extensions...${NOCOLOR}\n"
 jupyter server extension enable --py jupyterlab_code_formatter
+printf "${MSGCOLOR}Installing enabling jupyterlab extensions: done${NOCOLOR}\n\n"
+
+printf "${MSGCOLOR}Removing dataclasses as it is a part of python 3 now...${NOCOLOR}\n"
 pip uninstall -y dataclasses
+printf "${MSGCOLOR}Removing dataclasses as it is a part of python 3 now: done${NOCOLOR}\n\n"
+
+
+printf "${MSGCOLOR}Checking if there is rogue JupyterLab installed...${NOCOLOR}\n"
 ./check_if_rogue_jupyterlab_is_installed.sh
+printf "${MSGCOLOR}Checking if there is rogue JupyterLab installed: done${NOCOLOR}\n\n"
+printf "${MSGCOLOR}----------SUCCESS------------${NOCOLOR}\n"
+
+
+

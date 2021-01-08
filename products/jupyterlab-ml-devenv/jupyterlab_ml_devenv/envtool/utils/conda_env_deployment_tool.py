@@ -21,7 +21,7 @@ import sys
 import logging
 import tempfile
 from typing import List, Dict, Union, Any
-
+#
 LOG_LEVEL: str = "INFO"
 MAX_LINE_LENGTH: int = 88
 LOGGING_FORMAT: str = (
@@ -69,8 +69,13 @@ def exec_cmd_or_exit(command_list: list) -> None:
         sys.exit(exec_code)
 
 
-CURRENT_CONDA_ENV_PATH: str = os.environ["CONDA_PREFIX"]
-CURRENT_CONDA_ENV_NAME: str = os.environ["CONDA_DEFAULT_ENV"]
+def get_current_conda_env_path():
+    return os.environ["CONDA_PREFIX"]
+
+
+def get_current_conda_env_name():
+    return os.environ["CONDA_DEFAULT_ENV"]
+
 
 CURRENT_PATH: Path = Path(__file__).absolute().parent
 
@@ -129,11 +134,12 @@ def jlab_install_extensions(extension_name_list) -> None:
     del os.environ["NODE_OPTIONS"]
     """
 
-def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
+
+def filter_python_requirements_by_mode(source_conda_env_yaml_file: Path, mode: str) -> Path:
     out_stream: tempfile.NamedTemporaryFile = tempfile.NamedTemporaryFile(
         "wt", suffix=".yml", delete=False
     )
-    with open(str(CURRENT_PATH / req_relpath), "rt") as inp_stream:
+    with open(str(source_conda_env_yaml_file), "rt") as inp_stream:
         inp_line_str: str = inp_stream.readline()
         if mode == "all":
             while inp_line_str:
@@ -182,7 +188,7 @@ def filter_python_requirements_by_mode(req_relpath: Path, mode: str) -> Path:
     return Path(out_stream.name)
 
 
-def update(conda_env_path, mode, debug=False):
+def update_conda_env(conda_env_path, source_conda_env_yaml_file, mode, debug=False):
     __MODE2CMD_DICT: Dict[str, Dict[str, Any]] = {
         "all": {
             "install_requirements": True,
@@ -233,7 +239,7 @@ def update(conda_env_path, mode, debug=False):
 
     if cmd_run_param_dict["install_requirements"]:
         python_requirements_abs_path: Path = filter_python_requirements_by_mode(
-            Path("python_requirements.yml"),
+            source_conda_env_yaml_file,
             mode if cmd_run_param_dict["filter_requirements"] else "all",
         )
         update_conda_env_from_relfile(
@@ -265,72 +271,9 @@ def update(conda_env_path, mode, debug=False):
         pip_install_modules_by_relpath(module_relpath_list)
 
     if cmd_run_param_dict["jlab_install_extensions"]:
-        jlab_install_extensions(
-            [
-            ]
-        )
+        jlab_install_extensions([])
 
 
-def update_cli():
-    # noinspection PyShadowingNames
-    argument_parser: argparse.ArgumentParser = argparse.ArgumentParser(
-        prog=MAIN_CMD_NAME,
-        formatter_class=argparse.RawTextHelpFormatter,
-        description="Python Environment Installer",
-    )
-
-    argument_parser.add_argument(
-        "mode",
-        help="What to update"
-        'run with "-h" argument e.g.\n'
-        f"{MAIN_CMD_NAME} update products\n"
-        f"{MAIN_CMD_NAME} update all\n"
-        f"{MAIN_CMD_NAME} update packages\n"
-        f"{MAIN_CMD_NAME} update jupyterext\n"
-        f"{MAIN_CMD_NAME} update allbutjupyterext\n"
-        f"{MAIN_CMD_NAME} update @@@@@@\n"
-        "Here the last choice is almost the same as update packages\n"
-        "save that necessary packages are filtered from python_requirements.yml file as follows,\n"
-        "@@@@@ stands for some mode by which filtration of dependencies is performed,\n"
-        "namely a dependency having an inline comment is selected only in the case\n"
-        "this inline comment includes the mentioned mode in the comma-separated list of modes,\n"
-        "all other dependencies not having inline comments are always included\n",
-    )
-
-    argument_parser.add_argument(
-        "-d", "--debug", action="store_true", help="update with debug logs"
-    )
-
-    # noinspection PyShadowingNames
-    args: argparse.Namespace = argument_parser.parse_args(args=sys.argv[2:])
-
-    update(CURRENT_CONDA_ENV_PATH, args.mode, args.debug)
-
-
-if __name__ == "__main__":
-    """
-    assert (
-        CURRENT_CONDA_ENV_NAME == "base"
-    ), f'Your current environment needs to be "base" but in fact \
-            it is {CURRENT_CONDA_ENV_NAME}'
-    """
-    argument_parser = argparse.ArgumentParser(
-        prog=MAIN_CMD_NAME,
-        formatter_class=argparse.RawTextHelpFormatter,
-        description="Python Environment Installer",
-    )
-
-    argument_parser.add_argument(
-        "command",
-        help="Choose a command. To see help for each command "
-        'run with "-h" argument e.g.\n'
-        f"{MAIN_CMD_NAME} update -h"
-        f"{MAIN_CMD_NAME} install -h",
-        choices=("update",),
-    )
-
-    args: argparse.Namespace = argument_parser.parse_args(args=sys.argv[1:2])
-    command_name_cli_func_map: dict = {"update": update_cli}
-
-    cli_func = command_name_cli_func_map[args.command]
-    cli_func()
+def update_current_conda_env(*args, **kwargs):
+    current_conda_env_path = get_current_conda_env_path()
+    update_conda_env(current_conda_env_path, *args, **kwargs)
