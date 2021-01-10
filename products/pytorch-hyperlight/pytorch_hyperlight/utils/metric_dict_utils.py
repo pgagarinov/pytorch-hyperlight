@@ -13,12 +13,59 @@
 # limitations under the License.
 
 import torch
+import pandas as pd
+from copy import deepcopy
 
 
 class MetricDictUtils:
     @staticmethod
+    def get_stage_name_pretty(stage_list):
+        # stage can be 'train', 'val' and 'test'
+        return "/".join([s.capitalize() for s in stage_list])
+
+    @staticmethod
+    def filter_n_round_epoch_metrics(metrics_dict):
+        N_DIGITS_AFTER_DOT = 4
+
+        metrics_dict = MetricDictUtils.filter_by_suffix(metrics_dict, "_epoch")
+        metrics_dict = MetricDictUtils.remove_suffix(metrics_dict, "_epoch")
+        metrics_dict = MetricDictUtils.round_floats(metrics_dict, N_DIGITS_AFTER_DOT)
+        return metrics_dict
+
+    @staticmethod
+    def metrics_dict2df(metrics_dict, epoch, stage_list):
+        stage_name_pretty = MetricDictUtils.get_stage_name_pretty(stage_list)
+        metrics_dict = deepcopy(metrics_dict)
+        metrics_dict["stage-list"] = [stage_list]
+        metrics_dict["stage"] = stage_name_pretty
+
+        # sort metric names in alphabetical order from the tail
+        sorted_metric_list = [
+            e[::-1] for e in sorted([e[::-1] for e in list(metrics_dict.keys())])
+        ]
+        #
+        metrics_df = pd.DataFrame(
+            metrics_dict, index=[epoch], columns=sorted_metric_list
+        )
+        metrics_df.index.name = "epoch"
+        #
+        return metrics_df
+
+    @staticmethod
+    def metrics_df_list_concat(metrics_df_list):
+        epoch_list = [e.index[0] for e in metrics_df_list]
+        df = pd.concat(metrics_df_list)
+        df.insert(loc=0, column="epoch", value=epoch_list)
+        df.reset_index(inplace=True, drop=True)
+        return df
+
+    @staticmethod
+    def get_prefix_list(metrics_dict):
+        return [k.split("_", 1)[0] for k in metrics_dict.keys()]
+
+    @staticmethod
     def get_prefix_set(metrics_dict):
-        return set([k.split("_", 1)[0] for k in metrics_dict.keys()])
+        return set(MetricDictUtils.get_prefix_list(metrics_dict))
 
     @staticmethod
     def strip_tensors(metrics_dict):

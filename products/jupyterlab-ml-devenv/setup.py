@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from setuptools import setup, find_namespace_packages
+
+# noinspection PyProtectedMember
 from pip._internal.req import parse_requirements
 
 # flake8: noqa
@@ -22,6 +24,7 @@ SERVICE = "envtool"
 
 NAME = "{}.{}".format(NAMESPACE, SERVICE)
 
+# noinspection PyTypeChecker
 install_reqs = parse_requirements("envtool_requirements.txt", "req_install_hack")
 reqs = [str(ir.requirement) for ir in install_reqs]
 

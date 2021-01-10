@@ -21,7 +21,7 @@ printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel..
 # we install conda so that it is not installed later in setup.py
 # because if conda is installed via pip it will make conda 
 # not functional as a stand-alone command (which is what we need) 
-conda install -c conda-forge conda
+conda install -y -c conda-forge conda
 printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel: done${NOCOLOR}\n\n"
 
 printf "${MSGCOLOR}Installing jupyter_mldevenv package...${NOCOLOR}\n"

@@ -163,6 +163,7 @@ class TestBoringMNIST:
 
         # %%
 
+        # noinspection PyCallingNonCallable
         class LitBoringMNIST(pl.LightningModule):
             def __init__(self, hparams):
                 super().__init__()
@@ -259,10 +260,10 @@ class TestBoringMNIST:
                 return self.__stage_step(self.val_metric_calc, batch, batch_idx, "val")
 
         # %%
-
+        IS_CUDA = torch.cuda.is_available()
         N_CLASSES = loaders_dict["n_classes"]
         LMODULE_CLASS = LitBoringMNIST
-        GPU_PER_TRIAL = 0.3 * torch.cuda.is_available()
+        GPU_PER_TRIAL = 0.3 * IS_CUDA
         # %%
 
         CONFIG = {
@@ -296,14 +297,14 @@ class TestBoringMNIST:
             "val_loader_name": "val_ldr",
             "test_loader_name": "test_ldr",
             "batch_size_main": CONFIG["batch_size"],
-            "gpus": -1,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU,
+            "gpus": -1
+            * IS_CUDA,  # -1 - use GPU if available, 0 - use CPU, 1 - use single GPU,
             # >=2 - use multiple GPUs
         }
 
         if FAST_DEV_RUN:
             CONFIG["max_epochs"] = 2
             TUNE_CONFIG["n_samples"] = 2
-            TUNE_CONFIG["gpu_per_trial"] = GPU_PER_TRIAL
 
         SEARCH_SPACE_CONFIG = {
             "lr": tune.uniform(1e-5, 1e-4),
@@ -413,6 +414,9 @@ class TestBoringMNIST:
         from matplotlib.font_manager import FontProperties
         from torchvision.datasets.mnist import MNIST
 
+        # noinspection PyPep8Naming
+        import torch.nn.functional as F
+
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # noinspection PyUnresolvedReferences
@@ -433,7 +437,7 @@ class TestBoringMNIST:
                 inputs = inputs.to(device)
                 model.eval()
                 logit = model(inputs).cpu()
-                probs = torch.nn.functional.softmax(logit, dim=-1).numpy()
+                probs = F.softmax(logit, dim=-1).numpy()
             return probs
 
         # noinspection PyShadowingNames,PyTypeChecker
@@ -485,33 +489,31 @@ class TestBoringMNIST:
         show_some_predictions(loaders_dict, best_result["lmodule_best"])
 
     def __check_single_trial_result(self, result):
-        from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
         import pytorch_lightning as pl
-        import pandas as pd
 
         self.__check_result_common(result)
-        trial_metrics = result["metrics"]
-        assert isinstance(trial_metrics, TrialMetrics)
-        assert isinstance(trial_metrics.df, pd.DataFrame)
-        trial_metrics.plot()
         trainer = result["trainer"]
         assert isinstance(trainer, pl.Trainer)
 
     def __check_hyper_opt_result(self, result):
         from ray import tune
-        import pandas as pd
 
         self.__check_result_common(result)
         analysis = result["analysis"]
         assert isinstance(analysis, tune.ExperimentAnalysis)
-        metrics_last_ser = result["metrics_last"]
-        assert isinstance(metrics_last_ser, pd.Series)
 
     @staticmethod
     def __check_result_common(result):
         import pytorch_lightning as pl
+        from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+        import pandas as pd
 
         lmodule_best = result["lmodule_best"]
         assert isinstance(lmodule_best, pl.LightningModule)
         best_epoch = result["best_epoch"]
         assert isinstance(best_epoch, int)
+        trial_metrics = result["metrics"]
+        assert isinstance(trial_metrics, TrialMetrics)
+        assert isinstance(trial_metrics.df, pd.DataFrame)
+        assert isinstance(trial_metrics.series_last, pd.Series)
+        trial_metrics.plot()

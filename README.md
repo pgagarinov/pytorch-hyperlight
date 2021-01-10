@@ -180,175 +180,180 @@ def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
   <summary>
      The full example (click to expand)
    </summary>
-  
+
   ```python
    import pytorch_lightning as pl
-   import pytorch_lightning.metrics as metrics
-   from pytorch_lightning import Callback
+import pytorch_lightning.metrics as metrics
+from pytorch_lightning import Callback
 
-   import torch
-   import torch.nn.functional as F
+import torch
+# noinspection PyPep8Naming
+import torch.nn.functional as F
 
-   from transformers import AdamW, get_linear_schedule_with_warmup
-
-
-   class LitMetricsCalc(torch.nn.Module):
-       def __init__(self, prefix, num_classes):
-           super(LitMetricsCalc, self).__init__()
-           self.acc = metrics.classification.Accuracy()
-           self.f1 = metrics.classification.F1(
-               num_classes=num_classes, average="macro"
-           )
-           self.rec = metrics.classification.Recall(
-               num_classes=num_classes, average="macro"
-           )
-           self.prec = metrics.classification.Precision(
-               num_classes=num_classes, average="macro"
-           )
-           self.prefix = prefix
-
-       def step(self, logit, target):
-           probs = torch.softmax(logit, dim=1)
-           prefix = self.prefix
-           self.acc(probs, target)
-           self.f1(probs, target)
-           self.prec(probs, target)
-           self.rec(probs, target)
-
-           return {
-               f"{prefix}_acc": self.acc,
-               f"{prefix}_f1": self.f1,
-               f"{prefix}_prec": self.prec,
-               f"{prefix}_rec": self.rec,
-           }
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 
-   class BoringMNIST(torch.nn.Module):
-       def __init__(self, n_classes):
-           super().__init__()
-           self.l0 = torch.nn.Linear(28 * 28, 256)
-           self.l1 = torch.nn.Linear(256, 128)
-           self.l2 = torch.nn.Linear(128, n_classes)
+class LitMetricsCalc(torch.nn.Module):
+    def __init__(self, prefix, num_classes):
+        super(LitMetricsCalc, self).__init__()
+        self.acc = metrics.classification.Accuracy()
+        self.f1 = metrics.classification.F1(
+            num_classes=num_classes, average="macro"
+        )
+        self.rec = metrics.classification.Recall(
+            num_classes=num_classes, average="macro"
+        )
+        self.prec = metrics.classification.Precision(
+            num_classes=num_classes, average="macro"
+        )
+        self.prefix = prefix
 
-       def forward(self, x):
-           x = x.view(x.size(0), -1)
-           x = torch.relu(self.l0(x))
-           x = torch.relu(self.l1(x))
-           x = torch.relu(self.l2(x))
-           return x
+    def step(self, logit, target):
+        probs = torch.softmax(logit, dim=1)
+        prefix = self.prefix
+        self.acc(probs, target)
+        self.f1(probs, target)
+        self.prec(probs, target)
+        self.rec(probs, target)
+
+        return {
+            f"{prefix}_acc": self.acc,
+            f"{prefix}_f1": self.f1,
+            f"{prefix}_prec": self.prec,
+            f"{prefix}_rec": self.rec,
+        }
 
 
-   class LitBoringMNIST(pl.LightningModule):
-       def __init__(self, hparams):
-           super().__init__()
-           self.hparams = hparams
+class BoringMNIST(torch.nn.Module):
+    def __init__(self, n_classes):
+        super().__init__()
+        self.l0 = torch.nn.Linear(28 * 28, 256)
+        self.l1 = torch.nn.Linear(256, 128)
+        self.l2 = torch.nn.Linear(128, n_classes)
 
-           n_classes = self.hparams.n_classes
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        x = torch.relu(self.l0(x))
+        x = torch.relu(self.l1(x))
+        x = torch.relu(self.l2(x))
+        return x
 
-           model = BoringMNIST(n_classes)
 
-           self.model = model
-           self.train_metric_calc = LitMetricsCalc("train", num_classes=n_classes)
-           self.val_metric_calc = LitMetricsCalc("val", num_classes=n_classes)
-           self.test_metric_calc = LitMetricsCalc("test", num_classes=n_classes)
-           self.freeze()
+class LitBoringMNIST(pl.LightningModule):
+    def __init__(self, hparams):
+        super().__init__()
+        self.hparams = hparams
 
-       def freeze(self):
-           for param in self.model.parameters():
-               param.requires_grad = False
+        n_classes = self.hparams.n_classes
 
-       def unfreeze(self):
-           for param in self.model.parameters():
-               param.requires_grad = True
+        model = BoringMNIST(n_classes)
 
-       def unfreeze_tail(self, ind_layer):
-           assert ind_layer >= 0
-           ind = ind_layer
-           while True:
-               if ind == 0:
-                   for param in self.model.l2.parameters():
-                       param.requires_grad = True
-               elif ind == 1:
-                   for param in self.model.l1.parameters():
-                       param.requires_grad = True
-               elif ind == 2:
-                   for param in self.model.l0.parameters():
-                       param.requires_grad = True
-               ind -= 1
-               if ind < 0:
-                   break
+        self.model = model
+        self.train_metric_calc = LitMetricsCalc("train", num_classes=n_classes)
+        self.val_metric_calc = LitMetricsCalc("val", num_classes=n_classes)
+        self.test_metric_calc = LitMetricsCalc("test", num_classes=n_classes)
+        self.freeze()
 
-       def configure_optimizers(self):
-           optimizer = AdamW(
-               self.model.parameters(),
-               lr=self.hparams.lr,
-               betas=(0.9, 0.999),
-               eps=1e-8,
-           )
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
 
-           scheduler = get_linear_schedule_with_warmup(
-               optimizer, self.hparams.warmup, self.hparams.n_train_steps
-           )
-           return [optimizer], [
-               {"scheduler": scheduler, "interval": "step", "frequency": 1}
-           ]
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
 
-       def forward(self, inputs):
-           logits = self.model(inputs)
-           return logits
+    def unfreeze_tail(self, ind_layer):
+        assert ind_layer >= 0
+        ind = ind_layer
+        while True:
+            if ind == 0:
+                for param in self.model.l2.parameters():
+                    param.requires_grad = True
+            elif ind == 1:
+                for param in self.model.l1.parameters():
+                    param.requires_grad = True
+            elif ind == 2:
+                for param in self.model.l0.parameters():
+                    param.requires_grad = True
+            ind -= 1
+            if ind < 0:
+                break
 
-       def forward_batch(self, batch):
-           inputs = batch[0]
-           return self(inputs)
+    def configure_optimizers(self):
+        optimizer = AdamW(
+            self.model.parameters(),
+            lr=self.hparams.lr,
+            betas=(0.9, 0.999),
+            eps=1e-8,
+        )
 
-       def __calc_loss(self, logits, target, log_label):
-           loss = F.cross_entropy(logits, target)
-           self.log(
-               f"{log_label}_loss",
-               loss,
-               prog_bar=True,
-               on_step=True,
-               on_epoch=True,
-           )
-           return loss
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, self.hparams.warmup, self.hparams.n_train_steps
+        )
+        return [optimizer], [
+            {"scheduler": scheduler, "interval": "step", "frequency": 1}
+        ]
 
-       def __stage_step(self, metric_calc, batch, batch_idx, stage):
-           logits = self.forward_batch(batch)
-           mval_dict = metric_calc.step(logits, batch[1])
-           self.log_dict(mval_dict, prog_bar=True, on_step=True, on_epoch=True)
-           loss = self.__calc_loss(logits, batch[1], stage)
-           return loss
+    def forward(self, inputs):
+        logits = self.model(inputs)
+        return logits
 
-       def training_step(self, batch, batch_idx):
-           return self.__stage_step(
-               self.train_metric_calc, batch, batch_idx, "train"
-           )
+    def forward_batch(self, batch):
+        inputs = batch[0]
+        return self(inputs)
 
-       def test_step(self, batch, batch_idx):
-           return self.__stage_step(
-               self.test_metric_calc, batch, batch_idx, "test"
-           )
+    def __calc_loss(self, logits, target, log_label):
+        loss = F.cross_entropy(logits, target)
+        self.log(
+            f"{log_label}_loss",
+            loss,
+            prog_bar=True,
+            on_step=True,
+            on_epoch=True,
+        )
+        return loss
 
-       def validation_step(self, batch, batch_idx):
-           return self.__stage_step(self.val_metric_calc, batch, batch_idx, "val")
+    def __stage_step(self, metric_calc, batch, batch_idx, stage):
+        logits = self.forward_batch(batch)
+        mval_dict = metric_calc.step(logits, batch[1])
+        self.log_dict(mval_dict, prog_bar=True, on_step=True, on_epoch=True)
+        loss = self.__calc_loss(logits, batch[1], stage)
+        return loss
 
-   N_CLASSES = 10
-   LMODULE_CLASS = LitBoringMNIST
-   GPU_PER_TRIAL = 0.3 * torch.cuda.is_available()
-   class UnfreezeModelTailCallback(Callback):
-       def __init__(self, epoch_vec):
-           super().__init__()
-           self.epoch_vec = epoch_vec
+    def training_step(self, batch, batch_idx):
+        return self.__stage_step(
+            self.train_metric_calc, batch, batch_idx, "train"
+        )
 
-       def on_epoch_start(self, trainer, pl_module):
-           if trainer.current_epoch <= self.epoch_vec[0]:
-               pl_module.unfreeze_tail(0)
-           elif trainer.current_epoch <= self.epoch_vec[1]:
-               pl_module.unfreeze_tail(1)
-           else:
-               pl_module.unfreeze()
+    def test_step(self, batch, batch_idx):
+        return self.__stage_step(
+            self.test_metric_calc, batch, batch_idx, "test"
+        )
 
-   pl_callbacks = [UnfreezeModelTailCallback(CONFIG["unfreeze_epochs"])]
+    def validation_step(self, batch, batch_idx):
+        return self.__stage_step(self.val_metric_calc, batch, batch_idx, "val")
+
+
+N_CLASSES = 10
+LMODULE_CLASS = LitBoringMNIST
+GPU_PER_TRIAL = 0.3 * torch.cuda.is_available()
+
+
+class UnfreezeModelTailCallback(Callback):
+    def __init__(self, epoch_vec):
+        super().__init__()
+        self.epoch_vec = epoch_vec
+
+    def on_epoch_start(self, trainer, pl_module):
+        if trainer.current_epoch <= self.epoch_vec[0]:
+            pl_module.unfreeze_tail(0)
+        elif trainer.current_epoch <= self.epoch_vec[1]:
+            pl_module.unfreeze_tail(1)
+        else:
+            pl_module.unfreeze()
+
+
+pl_callbacks = [UnfreezeModelTailCallback(CONFIG["unfreeze_epochs"])]
    ```
 </details>
 
@@ -474,10 +479,10 @@ best_result = ptl_ray_runner.run_hyper_opt(
 best_results["lmodule_best"]
 ```
 
-##### Check the last observed metrics for the best model:
+##### Access the trial metrics the best model:
 
 ```python
-best_result["metrics_last"]
+best_result["metrics"]
 ```
 
 ##### Access Ray Tune [ExperimentAnalysis](https://docs.ray.io/en/master/tune/api_docs/analysis.html#experimentanalysis-tune-experimentanalysis) object:

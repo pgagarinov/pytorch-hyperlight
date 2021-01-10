@@ -15,24 +15,21 @@
 import os
 from functools import partial
 
-###
 import pytorch_lightning as pl
 from ray import tune
 
-#
 from pytorch_lightning.callbacks import (
     LearningRateMonitor,
     ModelCheckpoint,
 )
+
 from pytorch_hyperlight.callbacks.early_stopping import EarlyStoppingWithGracePeriod
 from pytorch_lightning.utilities.cloud_io import load as pl_load
 
-###
 from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
     TuneReportCheckpointCallback,
 )
 
-#
 from pytorch_hyperlight.runner.raytune_runner import (
     run_tune_experiment_asha_hyperopt,
     tune_init,
@@ -175,9 +172,14 @@ class Runner:
 
         metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
 
-        trial_metrics = TrialMetrics(
-            pd.Series(metrics_dict), lprogress_bar_callback.get_metrics_df()
-        )
+        trial_metrics = TrialMetrics(lprogress_bar_callback.get_metrics_df())
+
+        expected_series_last = pd.Series(
+            MetricDictUtils.filter_n_round_epoch_metrics(metrics_dict)
+        ).sort_index()
+        assert trial_metrics.series_last.sort_index().equals(
+            expected_series_last
+        ), "Oops, metrics values are inconsistent"
 
         return {
             "lmodule_best": lmodule_best,
@@ -269,10 +271,14 @@ class Runner:
             lmodule_best, trainer, tune_config, loaders_dict, lprogress_bar_callback
         )
 
+        metrics_df = MetricDictUtils.metrics_dict2df(
+            metrics_dict, best_epoch, ["reval", "test"]
+        )
+        metrics_df = MetricDictUtils.metrics_df_list_concat([metrics_df])
         return {
             "lmodule_best": lmodule_best,
             "best_epoch": best_epoch,
-            "metrics_last": pd.Series(metrics_dict),
+            "metrics": TrialMetrics(metrics_df),
             "analysis": analysis,
         }
 
@@ -284,27 +290,27 @@ class Runner:
         val_dataloader,
         lprogress_bar_callback,
     ):
-        def __test_is_revalidate_name_metric_pretty(stage_list, metric_name):
+        def __test_is_reval_name_metric_transform(stage_list, metric_name):
             # stage can be 'train', 'validation' and 'test'
             assert stage_list == ["test"]
             metric_name = metric_name.replace("test_", "reval_")
 
             return metric_name
 
-        def __test_is_revalidate_name_stage_pretty(stage_list):
+        def __test_is_reval_name_stage_transform(stage_list):
             # stage can be 'train', 'validation' and 'test'
             assert stage_list == ["test"]
-            return "Reval"
+            return ["reval"]
 
         #
-        prev_name_metric_pretty = lprogress_bar_callback.get_name_metric_pretty()
-        prev_name_stage_pretty = lprogress_bar_callback.get_name_stage_pretty()
+        prev_name_metric_transform = lprogress_bar_callback.get_name_metric_transform()
+        prev_name_stage_transform = lprogress_bar_callback.get_name_stage_transform()
         #
-        lprogress_bar_callback.set_name_metric_pretty(
-            __test_is_revalidate_name_metric_pretty
+        lprogress_bar_callback.set_name_metric_transform(
+            __test_is_reval_name_metric_transform
         )
-        lprogress_bar_callback.set_name_stage_pretty(
-            __test_is_revalidate_name_stage_pretty
+        lprogress_bar_callback.set_name_stage_transform(
+            __test_is_reval_name_stage_transform
         )
 
         self.__set_seed(extra_config)
@@ -312,8 +318,8 @@ class Runner:
             lmodule_best, test_dataloaders=val_dataloader, verbose=False
         )
 
-        lprogress_bar_callback.set_name_metric_pretty(prev_name_metric_pretty)
-        lprogress_bar_callback.set_name_stage_pretty(prev_name_stage_pretty)
+        lprogress_bar_callback.set_name_metric_transform(prev_name_metric_transform)
+        lprogress_bar_callback.set_name_stage_transform(prev_name_stage_transform)
 
         reval_metrics_dict = MetricDictUtils.filter_by_suffix(val_result[0], "_epoch")
         reval_metrics_dict = MetricDictUtils.change_prefix(
@@ -397,9 +403,7 @@ class Runner:
         #
         if "ptl_early_stopping_patience" in extra_config:
             if "ptl_early_stopping_grace_period" in extra_config:
-                es_kwargs = {
-                    "grace_period": extra_config["grace_period"]
-                }
+                es_kwargs = {"grace_period": extra_config["grace_period"]}
             else:
                 es_kwargs = {}
             #

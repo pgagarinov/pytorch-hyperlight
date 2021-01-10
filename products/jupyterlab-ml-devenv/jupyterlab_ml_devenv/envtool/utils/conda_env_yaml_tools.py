@@ -1,7 +1,7 @@
 import yaml
 from conda.models.match_spec import MatchSpec
 from yaml import CLoader
-from conda.models.version impor<t VersionSpec
+from conda.models.version import VersionSpec
 from functools import partial
 
 
@@ -42,6 +42,7 @@ def serialize_dependencies(spec_list):
 
 def version_eq2ge(spec, except_name_list=None):
     if (except_name_list is None) or (spec.name not in except_name_list):
+        # noinspection PyProtectedMember
         kwargs = {
             key: value
             for key, value in spec._match_components.items()
@@ -57,6 +58,7 @@ def version_eq2ge(spec, except_name_list=None):
 
 def version_strip(spec, except_name_list=None):
     if (except_name_list is None) or (spec.name not in except_name_list):
+        # noinspection PyProtectedMember
         kwargs = {
             key: value
             for key, value in spec._match_components.items()

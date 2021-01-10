@@ -68,9 +68,15 @@ def get_df_column_styles(df):
 
 
 class TrialMetrics:
-    def __init__(self, metrics_last_ser, metrics_df):
+    PLOT_INDEX_COLUMN_LIST = ["epoch", "stage"]
+    ALL_INDEX_COLUMN_LIST = PLOT_INDEX_COLUMN_LIST + ["stage-list"]
+
+    def __init__(self, metrics_df):
+        assert isinstance(metrics_df, pd.DataFrame)
+        assert all(
+            [col_name in metrics_df.columns for col_name in self.ALL_INDEX_COLUMN_LIST]
+        )
         self.__metrics_df = metrics_df
-        self.__metrics_last_ser = metrics_last_ser
 
     def get_df(self):
         return self.__metrics_df.copy()
@@ -78,7 +84,14 @@ class TrialMetrics:
     df = property(get_df)
 
     def get_series_last(self):
-        return self.__metrics_last_ser.copy()
+        return (
+            self.__metrics_df.loc[
+                :, self.__metrics_df.columns.drop(self.ALL_INDEX_COLUMN_LIST)
+            ]
+            .ffill(axis=0)
+            .iloc[-1, :]
+            .copy()
+        )
 
     series_last = property(get_series_last)
 
@@ -98,8 +111,12 @@ class TrialMetrics:
         return ax_list
 
     def plot(self, **kwargs):
-        #
-        df = self.__metrics_df.set_index(["stage", "epoch"])
+        cols2drop_list = list(
+            set(self.ALL_INDEX_COLUMN_LIST) - set(self.PLOT_INDEX_COLUMN_LIST)
+        )
+        df = self.__metrics_df.set_index(self.PLOT_INDEX_COLUMN_LIST).drop(
+            columns=cols2drop_list
+        )
         stage_metric_pair_list = [x.split("_", 1) for x in df.columns]
         new_column_tuples = [
             a[::-1] + [b] for a, b in zip(stage_metric_pair_list, df.columns)

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import subprocess
-import argparse
 from pathlib import Path
 import os
 import platform
@@ -21,6 +20,7 @@ import sys
 import logging
 import tempfile
 from typing import List, Dict, Union, Any
+
 #
 LOG_LEVEL: str = "INFO"
 MAX_LINE_LENGTH: int = 88
@@ -120,22 +120,24 @@ def pip_install_modules_by_relpath(module_relpath_list: List[Path]) -> None:
 
 
 def jlab_install_extensions(extension_name_list) -> None:
-    """
-    __JUPYTERLAB_EXTENSION_INSTALL_COMMAND = ["jupyter", "labextension", "install"]
-    os.environ["NODE_OPTIONS"] = "--max-old-space-size=4096"
 
-    for extension_name in extension_name_list:
-        exec_cmd_or_exit(
-            __JUPYTERLAB_EXTENSION_INSTALL_COMMAND + [extension_name, "--no-build"]
-        )
+    if len(extension_name_list) > 0:
+        __JUPYTERLAB_EXTENSION_INSTALL_COMMAND = ["jupyter", "labextension", "install"]
+        os.environ["NODE_OPTIONS"] = "--max-old-space-size=4096"
 
-    exec_cmd_or_exit(["jupyter", "lab", "build", "--minimize=False"])
+        for extension_name in extension_name_list:
+            exec_cmd_or_exit(
+                __JUPYTERLAB_EXTENSION_INSTALL_COMMAND + [extension_name, "--no-build"]
+            )
 
-    del os.environ["NODE_OPTIONS"]
-    """
+        exec_cmd_or_exit(["jupyter", "lab", "build", "--minimize=False"])
+
+        del os.environ["NODE_OPTIONS"]
 
 
-def filter_python_requirements_by_mode(source_conda_env_yaml_file: Path, mode: str) -> Path:
+def filter_python_requirements_by_mode(
+    source_conda_env_yaml_file: Path, mode: str
+) -> Path:
     out_stream: tempfile.NamedTemporaryFile = tempfile.NamedTemporaryFile(
         "wt", suffix=".yml", delete=False
     )
@@ -147,8 +149,8 @@ def filter_python_requirements_by_mode(source_conda_env_yaml_file: Path, mode: s
                 inp_line_str = inp_stream.readline()
         else:
             is_pip: bool = False
-            inp_pip_line_str: str = None
-            prev_out_line_str: str = None
+            inp_pip_line_str = None
+            prev_out_line_str = None
             while inp_line_str:
                 if not is_pip:
                     is_pip = "- pip:" in inp_line_str

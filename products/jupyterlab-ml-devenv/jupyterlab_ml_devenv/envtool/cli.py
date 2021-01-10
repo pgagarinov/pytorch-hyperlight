@@ -1,7 +1,9 @@
 import argparse
 from pathlib import Path
 import sys
-from jupyterlab_ml_devenv.envtool.utils.conda_env_deployment_tool import update_current_conda_env
+from jupyterlab_ml_devenv.envtool.utils.conda_env_deployment_tool import (
+    update_current_conda_env,
+)
 
 MAIN_CMD_NAME = "mlenvtool"
 
@@ -37,10 +39,18 @@ def add_cli_args(argument_parser: argparse.ArgumentParser, arg_group_list):
             help="Output conda environment file in yaml format",
             type=check_if_yaml_file_to_path,
         )
-        argument_parser.add_argument('--except_package_list', nargs='+', help='Packages to exclude from transformation', required=False, default=None)
+        argument_parser.add_argument(
+            "--except_package_list",
+            nargs="+",
+            help="Packages to exclude from transformation",
+            required=False,
+            default=None,
+        )
 
 
-def run_conda_env_yaml_transform(conda_env_transform, in_file, out_file, except_package_list):
+def run_conda_env_yaml_transform(
+    conda_env_transform, in_file, out_file, except_package_list
+):
 
     from jupyterlab_ml_devenv.envtool.utils.conda_env_yaml_tools import (
         conda_yaml_versions_strip,
@@ -48,9 +58,13 @@ def run_conda_env_yaml_transform(conda_env_transform, in_file, out_file, except_
     )
 
     if conda_env_transform == "versions_strip":
-        conda_yaml_versions_strip(in_file, out_file, except_name_list=except_package_list)
+        conda_yaml_versions_strip(
+            in_file, out_file, except_name_list=except_package_list
+        )
     elif conda_env_transform == "versions_eq2ge":
-        conda_yaml_versions_eq2ge(in_file, out_file, except_name_list=except_package_list)
+        conda_yaml_versions_eq2ge(
+            in_file, out_file, except_name_list=except_package_list
+        )
     else:
         raise ValueError(
             f"Unexpected value of conda_env_transform: {conda_env_transform}"
@@ -67,7 +81,10 @@ def conda_env_run_yaml_transform_cli():
     args = argument_parser.parse_args(args=sys.argv[2:])
 
     run_conda_env_yaml_transform(
-        args.conda_env_yaml_transform, args.in_yaml_file, args.out_yaml_file, args.except_package_list
+        args.conda_env_yaml_transform,
+        args.in_yaml_file,
+        args.out_yaml_file,
+        args.except_package_list,
     )
 
 
@@ -75,7 +92,9 @@ def conda_env_cur_update_cli():
 
     CURRENT_PATH: Path = Path(__file__).absolute()
 
-    CONDA_REQUIREMENTS_FILE = CURRENT_PATH.parents[2]/'mldevenv_conda_requirements.yml'    
+    CONDA_REQUIREMENTS_FILE = (
+        CURRENT_PATH.parents[2] / "mldevenv_conda_requirements.yml"
+    )
     argument_parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog=get_prog_name(),
         formatter_class=argparse.RawTextHelpFormatter,
@@ -120,7 +139,7 @@ def cli_strategy():
     args = argument_parser.parse_args(args=sys.argv[1:2])
     strategy_name_cli_func_map: dict = {
         "conda_env_yaml_transform": conda_env_run_yaml_transform_cli,
-        "conda_env_cur_update": conda_env_cur_update_cli
+        "conda_env_cur_update": conda_env_cur_update_cli,
     }
 
     cli_func = strategy_name_cli_func_map[args.strategy]
