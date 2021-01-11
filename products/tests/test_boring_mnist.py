@@ -339,6 +339,7 @@ class TestBoringMNIST:
             pl_callbacks=pl_callbacks,
             is_debug=FAST_DEV_RUN,
             experiment_id=EXPERIMENT_ID,
+            log2wandb=True
         )
 
         return {
@@ -383,6 +384,7 @@ class TestBoringMNIST:
 
         best_result = phl_runner.run_single_trial(lmodule_class, config, tune_config)
         #
+        self.__check_runner(phl_runner)
         self.__check_single_trial_result(best_result)
         self.__touch_check_results(boring_mnist["loaders_dict"], best_result)
 
@@ -400,8 +402,22 @@ class TestBoringMNIST:
             search_space_config,
             tune_config,
         )
+        self.__check_runner(phl_runner)
         self.__check_hyper_opt_result(best_result)
         self.__touch_check_results(boring_mnist["loaders_dict"], best_result)
+
+    @staticmethod
+    def __check_runner(runner):
+        from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+        import pandas as pd
+        runner.show_metric_report()
+        runner.show_metric_report(figsize=(15,10))
+        metric_dict = runner.get_metrics(keep_train_val_only=True)
+        metric_dict = runner.get_metrics()
+        assert isinstance(metric_dict['run_x_last_metric_df'], pd.DataFrame)
+        assert isinstance(metric_dict['epoch_x_stage_run_metric'], TrialMetrics)
+        assert isinstance(metric_dict['epoch_x_stage_run_metric'].df, pd.DataFrame)
+        metric_dict['epoch_x_stage_run_metric'].show_report()
 
     @staticmethod
     def __touch_check_results(loaders_dict, best_result):
@@ -517,3 +533,4 @@ class TestBoringMNIST:
         assert isinstance(trial_metrics.df, pd.DataFrame)
         assert isinstance(trial_metrics.series_last, pd.Series)
         trial_metrics.plot()
+        trial_metrics.show_report(figsize=(15,10))

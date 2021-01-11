@@ -16,12 +16,13 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import itertools
+from IPython.display import display
 
 TRAIN_SUFFIX = "train"
 VAL_SUFFIX = "val"
 REVAL_SUFFIX = "reval"
 TEST_SUFFIX = "test"
-MARKER_LIST = ("o", "+", "p", "<", "*", "^", "s", "d", "x", "1", "2", ">")
+MARKER_LIST = ("o", "d", "p", "*", "<", "^", "s", "+", "x", "1", "2", ">")
 
 
 def get_stage_suffix(inp_str):
@@ -68,7 +69,7 @@ def get_df_column_styles(df):
 
 
 class TrialMetrics:
-    PLOT_INDEX_COLUMN_LIST = ["epoch", "stage"]
+    PLOT_INDEX_COLUMN_LIST = ["stage", "epoch"]
     ALL_INDEX_COLUMN_LIST = PLOT_INDEX_COLUMN_LIST + ["stage-list"]
 
     def __init__(self, metrics_df):
@@ -76,7 +77,15 @@ class TrialMetrics:
         assert all(
             [col_name in metrics_df.columns for col_name in self.ALL_INDEX_COLUMN_LIST]
         )
+        metrics_df = metrics_df.copy()
+        metrics_df = metrics_df[pd.Index(self.ALL_INDEX_COLUMN_LIST).append(metrics_df.columns.drop(self.ALL_INDEX_COLUMN_LIST))]
+        metrics_df['stage-list'] = metrics_df['stage-list'].apply(tuple)
         self.__metrics_df = metrics_df
+
+    @staticmethod
+    def create_empty():
+        metric_df = pd.DataFrame(columns=TrialMetrics.ALL_INDEX_COLUMN_LIST)
+        return TrialMetrics(metric_df)
 
     def get_df(self):
         return self.__metrics_df.copy()
@@ -138,3 +147,7 @@ class TrialMetrics:
             metric_df.index = metric_df.index.droplevel(0)
             style_list = get_df_column_styles(metric_df)
             metric_df.plot(style=style_list, ms=5, grid=True, ax=ax)
+
+    def show_report(self, **kwargs):
+        display(self.df.drop(columns=['stage-list']))
+        self.plot(**kwargs)

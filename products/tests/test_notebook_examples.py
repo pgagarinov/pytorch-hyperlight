@@ -20,17 +20,24 @@ import pytest
 
 
 class TestExampleNotebooks:
-    @pytest.mark.parametrize("usage_mode", ["single-run", "hyper-opt"])
-    @pytest.mark.forked
-    def test_boring_mnist_example(self, usage_mode):
-        FILE_NAME = "boring_mnist.ipynb"
+
+    @staticmethod
+    def run_notebook(file_name):
         notebook_filename = (
-            Path(__file__).parents[2] / "products" / "examples" / FILE_NAME
+            Path(__file__).parents[2] / "products" / "examples" / file_name
         )
         with tempfile.TemporaryDirectory() as tmp_dir_name:
-            out_file = Path(tmp_dir_name) / FILE_NAME
+            out_file = Path(tmp_dir_name) / file_name
             pm.execute_notebook(
                 notebook_filename,
                 out_file,
-                {"USAGE_MODE": usage_mode, "FAST_DEV_RUN": True},
+                {"FAST_DEV_RUN": True},
             )
+
+    @pytest.mark.forked
+    def test_boring_mnist_example(self):
+        self.run_notebook("boring_mnist.ipynb")
+
+    @pytest.mark.forked
+    def test_boring_mnist_model_comparison(self):
+        self.run_notebook("boring_mnist_model_comparison.ipynb")

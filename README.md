@@ -424,32 +424,32 @@ best_result = runner.run_single_trial(LMODULE_CLASS, CONFIG, TUNE_CONFIG)
 
 #### 6. Check the results of single trial
 
-##### Access the best model
+##### Get the best model
 
 ```python
 best_results["lmodule_best"]
 ```
 
-##### Plot the trial metrics
+##### Build the trial metrics report
 
 ```python
-best_result["metrics"].plot()
+best_result["metrics"].show_report()
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_plot.png" width="800px">
+<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_report.png" width="800px">
 
 ##### Access the trial metrics as Pandas dataframe:
 
 ```python
 best_result["metrics"].df
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_df.png" width="800px">
+<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_df.png" width="800px">
 
 ##### the last observed metrics as Pandas series
 
 ```python
 best_result["metrics"].series_last
 ```
-
+<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_series_last.png" width="180px">
 
 
 #### 7. Run a hyper-parameter search by defining Ray Tune search space and calling `run_hyper_opt` method of the runner
@@ -464,7 +464,7 @@ SEARCH_SPACE_CONFIG = {
     "batch_size": tune.choice([16, 32, 64]),
     "n_classes": N_CLASSES,
 }
-best_result = ptl_ray_runner.run_hyper_opt(
+best_result = runner.run_hyper_opt(
     LMODULE_CLASS,
     SEARCH_SPACE_CONFIG,
     TUNE_CONFIG,
@@ -473,24 +473,49 @@ best_result = ptl_ray_runner.run_hyper_opt(
 
 #### 8. Check the results of single trial
 
-##### Access the best model
+##### Get the best model
 
 ```python
 best_results["lmodule_best"]
 ```
 
-##### Access the trial metrics the best model:
+##### Build the trial metrics report:
 
 ```python
-best_result["metrics"]
+best_result["metrics"].show_report()
 ```
 
-##### Access Ray Tune [ExperimentAnalysis](https://docs.ray.io/en/master/tune/api_docs/analysis.html#experimentanalysis-tune-experimentanalysis) object:
+##### Get [ExperimentAnalysis](https://docs.ray.io/en/master/tune/api_docs/analysis.html#experimentanalysis-tune-experimentanalysis) object returned by Ray Tune:
 
 ```python
 best_result["analysis"]
 ```
 
+#### 9. Compare the results of the single run with the results of hyper-parameters search
+    
+#### Show the report comparing the single run and the result of hyper-parameter optimization
+
+```python
+runner.show_metric_report(sort_by_metric_list=['test_f1', 'test_acc', "test_loss"])
+```
+<img src="products/pytorch-hyperlight/docs/_images/ph_runner_report.png" width="800px">
+
+#### Get the last observed metrics for both single-run and hyper-parameter optimization as Pandas DataFrame
+```python
+runner.get_metrics()['run_x_last_metric_df']
+```
+    
+<img src="products/pytorch-hyperlight/docs/_images/ph_runner_run_x_last_metric_df.png" width="800px">
+    
+#### Get the time-series metrics for both single-run and hyper-parameter optimization as Pandas DataFrame
+```python
+runner.get_metrics()['epoch_x_stage_run_metric'].df
+```
+<img src="products/pytorch-hyperlight/docs/_images/ph_runner_epoch_x_stage_run_metric_df.png" width="800px">
+
+    
 # Examples
 ## Jupyter notebooks
 1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist.ipynb)
+2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist_model_comparison.ipynb)
+3. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation_model_comparison.ipynb)
