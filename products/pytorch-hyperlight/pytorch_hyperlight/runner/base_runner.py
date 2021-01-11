@@ -193,8 +193,7 @@ class BaseRunner:
         ).sort_index()
         assert trial_metrics.series_last.sort_index().equals(
             expected_series_last
-        ), "Oops, metrics values are inconsistent"        
-
+        ), "Oops, metrics values are inconsistent"
 
     def __run_in_main_process(self, lmodule_builder, config, **kwargs):
         """
@@ -412,7 +411,7 @@ class BaseRunner:
         pl_callbacks.append(lr_monitor)
         #
         if "ptl_early_stopping_patience" in extra_config:
-            if "ptl_early_stopping_grace_period" in extra_config:
+            if "grace_period" in extra_config:
                 es_kwargs = {"grace_period": extra_config["grace_period"]}
             else:
                 es_kwargs = {}

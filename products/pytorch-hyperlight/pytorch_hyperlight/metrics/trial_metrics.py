@@ -146,7 +146,14 @@ class TrialMetrics:
             metric_df.columns = metric_df.columns.droplevel(0)
             metric_df.index = metric_df.index.droplevel(0)
             style_list = get_df_column_styles(metric_df)
-            metric_df.plot(style=style_list, ms=5, grid=True, ax=ax)
+            self.plot_df_with_dropped_nans(metric_df, ax, style_list, ms=5, grid=True)
+
+    @staticmethod
+    def plot_df_with_dropped_nans(df, ax, style_list, **kwargs):
+        for i_col, col in enumerate(df.columns):
+            col_series = df[col].dropna()
+            col_series.plot(label=col, style=style_list[i_col], ax=ax, **kwargs)
+        ax.legend()
 
     def show_report(self, **kwargs):
         display(self.df.drop(columns=['stage-list']))
