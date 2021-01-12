@@ -1,6 +1,6 @@
 # PyTorch Hyperlight
 
-**The opinionated micro-framework built as a thin wrapper around [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) to push the boundaries of simplicity even further.**
+**The ML micro-framework built as a thin wrapper around [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) to push the boundaries of simplicity even further.**
 
 
  * *Neither the author nor the project do not have any relation to PyTorch-Lightning Team or Ray project.*
