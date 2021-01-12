@@ -16,10 +16,13 @@
 
 ## Features 
  * All hyper-parameters are defined in a single dictionary.
- * Integrated plotting of training, validation and testing stage metrics.
+ * Plotting of training, validation and testing stage metrics.
+ * Trial comparison reports in form of both tables and graphs.
  * Pre-configured integration with Ray Tune for [ASHA](https://docs.ray.io/en/master/tune/api_docs/schedulers.html#tune-scheduler-hyperband) scheduler and [HyperOpt](https://docs.ray.io/en/latest/tune/api_docs/suggestion.html#hyperopt-tune-suggest-hyperopt-hyperoptsearch) optimization algorithm for out of the box hyper-parameter tuning.
  * Logging the training progress on console (via [tabule](https://github.com/astanin/python-tabulate) library)
  * Pre-configured integration with WandB that works for both single runs and hyper-parameter optimization runs (via Ray Tune)
+ * A growing collection of re-usable base classes (tasks) for different ML domains that you can inherit your PyTorch-Lightning modules from.
+ * A growing collection of tested Jupyter notebooks demonstrating various PyTorch-Hyperlight usage scenarious.
  
 ## Assumptions
 As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about the way you organize your code:
