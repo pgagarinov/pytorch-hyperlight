@@ -17,6 +17,7 @@ from pytorch_lightning import metrics
 import torch
 from abc import abstractmethod
 from transformers import AdamW, get_linear_schedule_with_warmup
+import torch.nn as nn
 
 
 class LitMetricsCalc(torch.nn.Module):
@@ -25,7 +26,7 @@ class LitMetricsCalc(torch.nn.Module):
         if metric_list is None:
             metric_list = ["acc", "f1"]
 
-        metrics_dict = {}
+        metrics_dict = nn.ModuleDict()
         if "acc" in metric_list:
             metrics_dict["acc"] = metrics.classification.Accuracy()
         if "f1" in metric_list:

@@ -97,7 +97,7 @@ class TestRunner:
                 self.dummy_layer = nn.Linear(1, 1)
 
             def forward(self, x):
-                return torch.ones(x.shape[0], self.__n_classes, requires_grad=True)
+                return torch.ones(x.shape[0], self.__n_classes, requires_grad=True, device=x.device)
 
         class LitDummyModule(ClassificationTaskAdamWWarmup):
             def __init__(self, hparams):
