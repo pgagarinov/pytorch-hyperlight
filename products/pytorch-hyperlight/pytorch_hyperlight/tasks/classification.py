@@ -15,7 +15,6 @@
 import pytorch_lightning as pl
 from pytorch_lightning import metrics
 import torch
-import numpy as np
 from abc import abstractmethod
 from transformers import AdamW, get_linear_schedule_with_warmup
 
@@ -24,17 +23,23 @@ class LitMetricsCalc(torch.nn.Module):
     def __init__(self, prefix, num_classes, metric_list=None):
         super(LitMetricsCalc, self).__init__()
         if metric_list is None:
-            metric_list = ['acc', 'f1']
+            metric_list = ["acc", "f1"]
 
         metrics_dict = {}
-        if 'acc' in metric_list:
-            metrics_dict['acc'] = metrics.classification.Accuracy()
-        if 'f1' in metric_list:
-            metrics_dict['f1'] = metrics.classification.F1(num_classes=num_classes, average="macro")
-        if 'prec' in metric_list:
-            metrics_dict['prec'] = metrics.classification.Precision(num_classes=num_classes, average="macro")
-        if 'rec' in metric_list:
-            metrics_dict['rec'] = metrics.classification.Precision(num_classes=num_classes, average="macro")
+        if "acc" in metric_list:
+            metrics_dict["acc"] = metrics.classification.Accuracy()
+        if "f1" in metric_list:
+            metrics_dict["f1"] = metrics.classification.F1(
+                num_classes=num_classes, average="macro"
+            )
+        if "prec" in metric_list:
+            metrics_dict["prec"] = metrics.classification.Precision(
+                num_classes=num_classes, average="macro"
+            )
+        if "rec" in metric_list:
+            metrics_dict["rec"] = metrics.classification.Precision(
+                num_classes=num_classes, average="macro"
+            )
         self._metrics_dict = metrics_dict
         self.prefix = prefix
 
@@ -48,7 +53,10 @@ class LitMetricsCalc(torch.nn.Module):
         for metric in self._metrics_dict.values():
             metric(probs, target)
 
-        return {f"{prefix}_{metric_name}": metric for metric_name, metric in self._metrics_dict.items()}
+        return {
+            f"{prefix}_{metric_name}": metric
+            for metric_name, metric in self._metrics_dict.items()
+        }
 
 
 class AClassificationTask(pl.LightningModule):
@@ -57,14 +65,16 @@ class AClassificationTask(pl.LightningModule):
         self.save_hyperparameters(hparams)
 
         n_classes = self.hparams.n_classes
-        if 'metric_list' in self.hparams:
-            kwargs = {'metric_list': self.hparams['metric_list']}
+        if "metric_list" in self.hparams:
+            kwargs = {"metric_list": self.hparams["metric_list"]}
         else:
             kwargs = {}
 
         self.model = model
         self.criterion = criterion
-        self.train_metric_calc = LitMetricsCalc("train", num_classes=n_classes, **kwargs)
+        self.train_metric_calc = LitMetricsCalc(
+            "train", num_classes=n_classes, **kwargs
+        )
         self.val_metric_calc = LitMetricsCalc("val", num_classes=n_classes, **kwargs)
         self.test_metric_calc = LitMetricsCalc("test", num_classes=n_classes, **kwargs)
 
@@ -87,6 +97,7 @@ class AClassificationTask(pl.LightningModule):
         self.log(f"{log_label}_loss", loss, prog_bar=True, on_step=True, on_epoch=True)
         return loss
 
+    # noinspection PyUnusedLocal
     def __stage_step(self, metric_calc, batch, batch_idx, stage):
         logits = self.forward_batch(batch)
         mval_dict = metric_calc.step(logits, batch[1])

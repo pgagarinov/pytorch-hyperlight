@@ -20,7 +20,6 @@ import pytest
 
 
 class TestExampleNotebooks:
-
     @staticmethod
     def run_notebook(file_name):
         notebook_filename = (

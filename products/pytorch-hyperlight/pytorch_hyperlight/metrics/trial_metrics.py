@@ -78,8 +78,12 @@ class TrialMetrics:
             [col_name in metrics_df.columns for col_name in self.ALL_INDEX_COLUMN_LIST]
         )
         metrics_df = metrics_df.copy()
-        metrics_df = metrics_df[pd.Index(self.ALL_INDEX_COLUMN_LIST).append(metrics_df.columns.drop(self.ALL_INDEX_COLUMN_LIST))]
-        metrics_df['stage-list'] = metrics_df['stage-list'].apply(tuple)
+        metrics_df = metrics_df[
+            pd.Index(self.ALL_INDEX_COLUMN_LIST).append(
+                metrics_df.columns.drop(self.ALL_INDEX_COLUMN_LIST)
+            )
+        ]
+        metrics_df["stage-list"] = metrics_df["stage-list"].apply(tuple)
         self.__metrics_df = metrics_df
 
     @staticmethod
@@ -156,5 +160,5 @@ class TrialMetrics:
         ax.legend()
 
     def show_report(self, **kwargs):
-        display(self.df.drop(columns=['stage-list']))
+        display(self.df.drop(columns=["stage-list"]))
         self.plot(**kwargs)

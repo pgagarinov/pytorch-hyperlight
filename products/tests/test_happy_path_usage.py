@@ -15,7 +15,7 @@
 import pytest
 
 
-class TestBoringMNIST:
+class TestHappyPathUsage:
     @pytest.fixture(scope="module")
     def boring_mnist(self):
         from pytorch_hyperlight import Runner
@@ -79,17 +79,18 @@ class TestBoringMNIST:
         # a dedicated function for creating dataloaders
         # 'full_train_loader' is created along with standard 3 loaders
         # for training, validation and testing datasets
-        # noinspection PyUnusedLocal
+        # noinspection PyUnusedLocal,DuplicatedCode,PyShadowingNames
         def configure_dataloaders(batch_size, n_workers=4, val_size=0.2):
             #
             SHUFFLE = True
             SAMPLER = None
             #
-            result_dict = create_datasets(val_size)
+            dataset_dict = create_datasets(val_size)
             #
+            loaders_dict = dataset_dict
             for prefix in ["train", "full_train"]:
-                result_dict[f"{prefix}_ldr"] = DataLoader(
-                    result_dict[f"{prefix}_dataset"],
+                loaders_dict[f"{prefix}_ldr"] = DataLoader(
+                    dataset_dict[f"{prefix}_dataset"],
                     batch_size=batch_size,
                     shuffle=SHUFFLE,
                     sampler=SAMPLER,
@@ -99,15 +100,15 @@ class TestBoringMNIST:
                 )
             #
             for prefix in ["val", "test"]:
-                result_dict[f"{prefix}_ldr"] = DataLoader(
-                    result_dict[f"{prefix}_dataset"],
+                loaders_dict[f"{prefix}_ldr"] = DataLoader(
+                    dataset_dict[f"{prefix}_dataset"],
                     batch_size=batch_size,
                     shuffle=False,
                     # num_workers=n_workers,
                     pin_memory=True,
                 )
 
-            return result_dict
+            return loaders_dict
 
         BATCH_SIZE = 32
 
@@ -339,7 +340,7 @@ class TestBoringMNIST:
             pl_callbacks=pl_callbacks,
             is_debug=FAST_DEV_RUN,
             experiment_id=EXPERIMENT_ID,
-            log2wandb=True
+            log2wandb=True,
         )
 
         return {
@@ -372,6 +373,7 @@ class TestBoringMNIST:
             del tune_config["grace_period"]
         return tune_config
 
+    @pytest.mark.forked
     @pytest.mark.parametrize(
         "is_val, is_test", [(True, True), (True, False), (False, True), (False, False)]
     )
@@ -410,14 +412,15 @@ class TestBoringMNIST:
     def __check_runner(runner):
         from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
         import pandas as pd
+
         runner.show_metric_report()
-        runner.show_metric_report(figsize=(15,10))
-        metric_dict = runner.get_metrics(keep_train_val_only=True)
+        runner.show_metric_report(figsize=(15, 10))
+        _ = runner.get_metrics(keep_train_val_only=True)
         metric_dict = runner.get_metrics()
-        assert isinstance(metric_dict['run_x_last_metric_df'], pd.DataFrame)
-        assert isinstance(metric_dict['epoch_x_stage_run_metric'], TrialMetrics)
-        assert isinstance(metric_dict['epoch_x_stage_run_metric'].df, pd.DataFrame)
-        metric_dict['epoch_x_stage_run_metric'].show_report()
+        assert isinstance(metric_dict["run_x_last_metric_df"], pd.DataFrame)
+        assert isinstance(metric_dict["epoch_x_stage_run_metric"], TrialMetrics)
+        assert isinstance(metric_dict["epoch_x_stage_run_metric"].df, pd.DataFrame)
+        metric_dict["epoch_x_stage_run_metric"].show_report()
 
     @staticmethod
     def __touch_check_results(loaders_dict, best_result):
@@ -533,4 +536,4 @@ class TestBoringMNIST:
         assert isinstance(trial_metrics.df, pd.DataFrame)
         assert isinstance(trial_metrics.series_last, pd.Series)
         trial_metrics.plot()
-        trial_metrics.show_report(figsize=(15,10))
+        trial_metrics.show_report(figsize=(15, 10))

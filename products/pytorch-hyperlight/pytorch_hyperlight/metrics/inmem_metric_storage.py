@@ -23,8 +23,10 @@ class InMemMetricStorage:
         self.__metric_df_dict = {}
 
     def log_trial_metrics(self, trial_metrics, trial_name):
-        trial_name.replace('_', '-')
-        assert trial_name not in self.__metric_df_dict, f'metrics for run {trial_name} have already been logged'
+        trial_name.replace("_", "-")
+        assert (
+            trial_name not in self.__metric_df_dict
+        ), f"metrics for run {trial_name} have already been logged"
         self.__metric_df_dict[trial_name] = trial_metrics
 
     def get_run_names(self):
@@ -42,8 +44,10 @@ class InMemMetricStorage:
             run_x_last_metric_df = pd.DataFrame()
             epoch_x_stage_run_metric = TrialMetrics.create_empty()
 
-        return {'run_x_last_metric_df': run_x_last_metric_df, 
-                'epoch_x_stage_run_metric': epoch_x_stage_run_metric}
+        return {
+            "run_x_last_metric_df": run_x_last_metric_df,
+            "epoch_x_stage_run_metric": epoch_x_stage_run_metric,
+        }
 
     @staticmethod
     def combine_exp_metric_df(metrics_dict, keep_train_val_only=False):
@@ -57,16 +61,23 @@ class InMemMetricStorage:
             )
             for mod, xdf in df_dict.items()
         ]
-        df_list = [xdf.set_index(TrialMetrics.ALL_INDEX_COLUMN_LIST, drop=True) for xdf in df_list]
+        df_list = [
+            xdf.set_index(TrialMetrics.ALL_INDEX_COLUMN_LIST, drop=True)
+            for xdf in df_list
+        ]
         #
         #  in the following statement on=TrialMetrics.ALL_INDEX_COLUMN_LIST is a workaround for
         #  https://github.com/pandas-dev/pandas/issues/39100
         df_all = df_list[0]
         for cur_df in df_list[1:]:
-            df_all = df_all.merge(cur_df, how='outer', on=TrialMetrics.ALL_INDEX_COLUMN_LIST)
+            df_all = df_all.merge(
+                cur_df, how="outer", on=TrialMetrics.ALL_INDEX_COLUMN_LIST
+            )
 
         if keep_train_val_only:
-            needed_cols = [c for c in df_all.columns if c[:5] != "reval" and c[:4] != "test"]
+            needed_cols = [
+                c for c in df_all.columns if c[:5] != "reval" and c[:4] != "test"
+            ]
             df_all = df_all[needed_cols]
 
         return df_all
@@ -84,13 +95,13 @@ class InMemMetricStorage:
     def show_report(self, sort_by_metric_list=None, figsize=(20, 10), **kwargs):
         if len(self.__metric_df_dict) > 0:
             metrics_dict = self.get_metrics(**kwargs)
-            run_x_last_metric_df = metrics_dict['run_x_last_metric_df']
+            run_x_last_metric_df = metrics_dict["run_x_last_metric_df"]
             if sort_by_metric_list is None:
                 sort_by_metric_list = list(run_x_last_metric_df.columns)
             else:
                 sort_by_metric_list = sort_by_metric_list + ["run"]
-            run_x_last_metric_df = run_x_last_metric_df.loc[:, sort_by_metric_list].sort_values(
-                sort_by_metric_list, ascending=False
-            )
+            run_x_last_metric_df = run_x_last_metric_df.loc[
+                :, sort_by_metric_list
+            ].sort_values(sort_by_metric_list, ascending=False)
             display(run_x_last_metric_df)
-            metrics_dict['epoch_x_stage_run_metric'].plot(figsize=figsize)
+            metrics_dict["epoch_x_stage_run_metric"].plot(figsize=figsize)

@@ -4,10 +4,25 @@ import logging
 import os
 import pytorch_lightning as pl
 import ray.tune.integration.wandb as rtwb
+from abc import ABC, abstractmethod
+
+
+class IWandBIntegrator(ABC):
+    @abstractmethod
+    def configure_raytune(self, exp_config):
+        pass
+
+    @abstractmethod
+    def get_pl_loggers(self):
+        pass
+
+    @abstractmethod
+    def get_raytune_loggers(self):
+        pass
 
 
 # noinspection PyUnresolvedReferences
-class WandBIntegrator:
+class WandBIntegrator(IWandBIntegrator):
     def __init__(self, experiment_id, silent=True):
         self.__experiment_id = experiment_id
         self.__set_key_if_exists()
@@ -80,8 +95,8 @@ class WandBIntegrator:
 
         return raytune_loggers
 
-    
-class DummyWandBIntegrator:
+
+class DummyWandBIntegrator(IWandBIntegrator):
     def __init__(self, *args, **kwargs):
         pass
 

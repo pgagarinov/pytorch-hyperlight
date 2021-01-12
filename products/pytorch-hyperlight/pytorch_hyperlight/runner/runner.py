@@ -24,32 +24,58 @@ class Runner(BaseRunner):
         self.__run_name_duplicate_counter = Counter()
 
     def __log_metrics(self, result_dict, run_name):
-        self.__metric_storage.log_trial_metrics(result_dict['metrics'], run_name)
+        self.__metric_storage.log_trial_metrics(result_dict["metrics"], run_name)
 
-    def __generate_run_name(self, run_name, run_name_prefix, extra_run_name_prefix, lmodule_class):
-        assert run_name is None or (run_name_prefix is None and extra_run_name_prefix is None), 'Cannot combine run_name with prefixes'
+    def __generate_run_name(
+        self, run_name, run_name_prefix, extra_run_name_prefix, lmodule_class
+    ):
+        assert run_name is None or (
+            run_name_prefix is None and extra_run_name_prefix is None
+        ), "Cannot combine run_name with prefixes"
         if run_name is None:
             run_name = extra_run_name_prefix + run_name_prefix + lmodule_class.__name__
 
-            if (extra_run_name_prefix == '') and (run_name in self.__run_name_duplicate_counter):
+            if (extra_run_name_prefix == "") and (
+                run_name in self.__run_name_duplicate_counter
+            ):
                 cnt = self.__run_name_duplicate_counter[run_name]
                 cnt += 1
-                run_name = f'{run_name}@{cnt}'
                 self.__run_name_duplicate_counter[run_name] = cnt
+                run_name = f"{run_name}@{cnt}"
             else:
                 self.__run_name_duplicate_counter[run_name] = 1
 
         return run_name
 
-    def run_single_trial(self, lmodule_class, *args, run_name=None, run_name_prefix='single-trial-', extra_run_name_prefix ='', **kwargs):
+    def run_single_trial(
+        self,
+        lmodule_class,
+        *args,
+        run_name=None,
+        run_name_prefix="single-trial-",
+        extra_run_name_prefix="",
+        **kwargs,
+    ):
         result_dict = super().run_single_trial(lmodule_class, *args, **kwargs)
-        run_name = self.__generate_run_name(run_name, run_name_prefix, extra_run_name_prefix, lmodule_class)
+        run_name = self.__generate_run_name(
+            run_name, run_name_prefix, extra_run_name_prefix, lmodule_class
+        )
         self.__log_metrics(result_dict, run_name)
         return result_dict
 
-    def run_hyper_opt(self, lmodule_class, *args, run_name=None, run_name_prefix='hyper-opt-', extra_run_name_prefix ='', **kwargs):
+    def run_hyper_opt(
+        self,
+        lmodule_class,
+        *args,
+        run_name=None,
+        run_name_prefix="hyper-opt-",
+        extra_run_name_prefix="",
+        **kwargs,
+    ):
         result_dict = super().run_hyper_opt(lmodule_class, *args, **kwargs)
-        run_name = self.__generate_run_name(run_name, run_name_prefix, extra_run_name_prefix, lmodule_class)
+        run_name = self.__generate_run_name(
+            run_name, run_name_prefix, extra_run_name_prefix, lmodule_class
+        )
         self.__log_metrics(result_dict, run_name)
         return result_dict
 

@@ -34,7 +34,10 @@ from pytorch_hyperlight.runner.raytune_runner import (
     run_tune_experiment_asha_hyperopt,
     tune_init,
 )
-from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import WandBIntegrator, DummyWandBIntegrator
+from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import (
+    WandBIntegrator,
+    DummyWandBIntegrator,
+)
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
@@ -89,7 +92,7 @@ class BaseRunner:
         pl_loggers=None,
         is_debug=False,
         experiment_id=None,
-        log2wandb=False
+        log2wandb=False,
     ):
 
         if pl_callbacks is None:
@@ -187,7 +190,8 @@ class BaseRunner:
             "metrics": trial_metrics,
         }
 
-    def __check_trial_metrics(self, trial_metrics, metrics_dict):
+    @staticmethod
+    def __check_trial_metrics(trial_metrics, metrics_dict):
         expected_series_last = pd.Series(
             MetricDictUtils.filter_n_round_epoch_metrics(metrics_dict)
         ).sort_index()
