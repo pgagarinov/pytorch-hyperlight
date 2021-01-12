@@ -11,85 +11,81 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import torch
-from pytorch_hyperlight.tasks.classification import ClassificationTaskAdamWWarmup
-
-# noinspection PyProtectedMember
-from torch.utils.data import DataLoader, TensorDataset
-from torch import nn
-import pytorch_hyperlight as pth
 import pytest
-
-
-def create_random_classes_datasets(
-    input_shape, n_classes, n_train=1024, n_valid=256, n_test=128
-):
-
-    train_x = torch.randn([n_train] + input_shape)
-    valid_x = torch.randn([n_valid] + input_shape)
-    test_x = torch.randn([n_test] + input_shape)
-
-    train_y = torch.randint(n_classes, [n_train], dtype=torch.long)
-    valid_y = torch.randint(n_classes, [n_valid], dtype=torch.long)
-    test_y = torch.randint(n_classes, [n_test], dtype=torch.long)
-
-    train_dataset = TensorDataset(train_x, train_y)
-    valid_dataset = TensorDataset(valid_x, valid_y)
-    test_dataset = TensorDataset(test_x, test_y)
-    return train_dataset, valid_dataset, test_dataset
-
-
-def create_datasets(n_classes=None):
-    DEFAULT_N_CLASSES = 10
-    INPUT_SHAPE = [1, 28, 28]
-    if n_classes is None:
-        n_classes = DEFAULT_N_CLASSES
-
-    train_dataset, val_dataset, test_dataset = create_random_classes_datasets(
-        INPUT_SHAPE, n_classes
-    )
-
-    return {
-        "full_train_dataset": train_dataset + val_dataset,
-        "train_dataset": train_dataset,
-        "val_dataset": val_dataset,
-        "test_dataset": test_dataset,
-        "n_classes": n_classes,
-    }
-
-
-# noinspection DuplicatedCode,PyUnusedLocal
-def configure_dataloaders(batch_size, n_workers=4, n_classes=None):
-    #
-    SHUFFLE = True
-    SAMPLER = None
-    #
-    dataset_dict = create_datasets(n_classes=n_classes)
-    loaders_dict = dataset_dict
-    #
-    for prefix in ["train", "full_train"]:
-        loaders_dict[f"{prefix}_loader"] = DataLoader(
-            dataset_dict[f"{prefix}_dataset"],
-            batch_size=batch_size,
-            shuffle=SHUFFLE,
-            sampler=SAMPLER,
-            pin_memory=True,
-        )
-    #
-    for prefix in ["val", "test"]:
-        loaders_dict[f"{prefix}_loader"] = DataLoader(
-            dataset_dict[f"{prefix}_dataset"],
-            batch_size=batch_size,
-            shuffle=False,
-            pin_memory=True,
-        )
-    return loaders_dict
-
 
 class TestRunner:
     @pytest.fixture
     def dummy_prerequisites_dict(self):
+        import torch
+        from pytorch_hyperlight.tasks.classification import ClassificationTaskAdamWWarmup
+
+        # noinspection PyProtectedMember
+        from torch.utils.data import DataLoader, TensorDataset
+        from torch import nn
+        import pytorch_hyperlight as pth
+
+        def create_random_classes_datasets(
+                input_shape, n_classes, n_train=1024, n_valid=256, n_test=128
+        ):
+
+            train_x = torch.randn([n_train] + input_shape)
+            valid_x = torch.randn([n_valid] + input_shape)
+            test_x = torch.randn([n_test] + input_shape)
+
+            train_y = torch.randint(n_classes, [n_train], dtype=torch.long)
+            valid_y = torch.randint(n_classes, [n_valid], dtype=torch.long)
+            test_y = torch.randint(n_classes, [n_test], dtype=torch.long)
+
+            train_dataset = TensorDataset(train_x, train_y)
+            valid_dataset = TensorDataset(valid_x, valid_y)
+            test_dataset = TensorDataset(test_x, test_y)
+            return train_dataset, valid_dataset, test_dataset
+
+        def create_datasets(n_classes=None):
+            DEFAULT_N_CLASSES = 10
+            INPUT_SHAPE = [1, 28, 28]
+            if n_classes is None:
+                n_classes = DEFAULT_N_CLASSES
+
+            train_dataset, val_dataset, test_dataset = create_random_classes_datasets(
+                INPUT_SHAPE, n_classes
+            )
+
+            return {
+                "full_train_dataset": train_dataset + val_dataset,
+                "train_dataset": train_dataset,
+                "val_dataset": val_dataset,
+                "test_dataset": test_dataset,
+                "n_classes": n_classes,
+            }
+
+        # noinspection DuplicatedCode,PyUnusedLocal
+        def configure_dataloaders(batch_size, n_workers=4, n_classes=None):
+            #
+            SHUFFLE = True
+            SAMPLER = None
+            #
+            dataset_dict = create_datasets(n_classes=n_classes)
+            loaders_dict = dataset_dict
+            #
+            for prefix in ["train", "full_train"]:
+                loaders_dict[f"{prefix}_loader"] = DataLoader(
+                    dataset_dict[f"{prefix}_dataset"],
+                    batch_size=batch_size,
+                    shuffle=SHUFFLE,
+                    sampler=SAMPLER,
+                    pin_memory=True,
+                )
+            #
+            for prefix in ["val", "test"]:
+                loaders_dict[f"{prefix}_loader"] = DataLoader(
+                    dataset_dict[f"{prefix}_dataset"],
+                    batch_size=batch_size,
+                    shuffle=False,
+                    pin_memory=True,
+                )
+            return loaders_dict
+
         N_CLASSES = 10
         EXPERIMENT_ID = TestRunner.test_grace_period.__name__
         loaders_dict = configure_dataloaders(32, n_classes=N_CLASSES)
