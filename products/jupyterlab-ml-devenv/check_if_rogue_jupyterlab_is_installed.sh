@@ -20,14 +20,14 @@ if [ -z "$pip_list_jupyter_ver_output" ]; then
   echo "!!!!>>>>A rogue version of jupyterlab was found and needs to be removed: '$pip_list_jupyter_output' <<<<!!!!"
   echo "Please try to do it via 'pip uninstall jupyterlab'"
   echo "Or delete the following folders manually"
-  echo "/home/peter/.local/bin/jlpm
-    /home/peter/.local/bin/jupyter-lab
-    /home/peter/.local/bin/jupyter-labextension
-    /home/peter/.local/bin/jupyter-labhub
-    /home/peter/.local/etc/jupyter/jupyter_notebook_config.d/jupyterlab.json
-    /home/peter/.local/lib/python3.8/site-packages/jupyterlab-2.2.9.dist-info/*
-    /home/peter/.local/lib/python3.8/site-packages/jupyterlab/*
-    /home/peter/.local/share/jupyter/"
+  echo "$HOME/.local/bin/jlpm
+    $HOME/.local/bin/jupyter-lab
+    $HOME/.local/bin/jupyter-labextension
+    $HOME/.local/bin/jupyter-labhub
+    $HOME/.local/etc/jupyter/jupyter_notebook_config.d/jupyterlab.json
+    $HOME/.local/lib/python3.8/site-packages/jupyterlab-2.2.9.dist-info/*
+    $HOME/.local/lib/python3.8/site-packages/jupyterlab/*
+    $HOME/.local/share/jupyter/"
 
 else
   echo "$pip_list_jupyter_ver_output is installed"
