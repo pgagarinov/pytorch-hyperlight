@@ -18,17 +18,18 @@ pip_list_jupyter_ver_output="$(pip list|grep 'jupyterlab.*3.0.1')"
 if [ -z "$pip_list_jupyter_ver_output" ]; then
   pip_list_jupyter_output="$(pip list|grep 'jupyterlab\ ')"
   echo "!!!!>>>>A rogue version of jupyterlab was found and needs to be removed: '$pip_list_jupyter_output' <<<<!!!!"
-  echo "Please try to do it via 'pip uninstall jupyterlab'"
+  echo "Please try to do it via 'pip uninstall jupyterlab', 'pip uninstall jupyterlab-server"
   echo "Or delete the following folders manually"
-  echo "$HOME/.local/bin/jlpm
-    $HOME/.local/bin/jupyter-lab
-    $HOME/.local/bin/jupyter-labextension
-    $HOME/.local/bin/jupyter-labhub
-    $HOME/.local/etc/jupyter/jupyter_notebook_config.d/jupyterlab.json
-    $HOME/.local/lib/python3.8/site-packages/jupyterlab-2.2.9.dist-info/*
-    $HOME/.local/lib/python3.8/site-packages/jupyterlab/*
-    $HOME/.local/share/jupyter/"
+  echo "rm $HOME/.local/bin/jlpm
+    rm -$HOME/.local/bin/jupyter-lab
+    rm $HOME/.local/bin/jupyter-labextension
+    rm $HOME/.local/bin/jupyter-labhub
+    rm $HOME/.local/etc/jupyter/jupyter_notebook_config.d/jupyterlab.json
+    rm -rf $HOME/.local/lib/python3.8/site-packages/jupyter*
+    rm -rf $HOME/.local/share/jupyter/"
 
 else
   echo "$pip_list_jupyter_ver_output is installed"
 fi
+
+jupyter-lab --version
