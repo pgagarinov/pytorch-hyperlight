@@ -79,7 +79,8 @@ class LitModuleBuilder:
             map_location=lambda storage, loc: storage,
         )
         epoch = ckpt["epoch"]
-        lmodule = model_class._load_model_state(ckpt, **kwargs)
+        # use strict=False by default
+        lmodule = model_class._load_model_state(ckpt, strict=False, **kwargs)
         #
         return lmodule, epoch, ckpt
 
