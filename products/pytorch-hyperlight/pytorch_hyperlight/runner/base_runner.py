@@ -179,7 +179,9 @@ class BaseRunner:
 
         metrics_dict = {**train_val_metrics_dict, **reval_test_metrics_dict}
 
-        trial_metrics = TrialMetrics(lprogress_bar_callback.get_metrics_df())
+        trial_metrics = TrialMetrics.from_metrics_df_list(
+            lprogress_bar_callback.get_metrics_df_list()
+        )
 
         self.__check_trial_metrics(trial_metrics, metrics_dict)
 
@@ -282,9 +284,11 @@ class BaseRunner:
             lmodule_best, trainer, tune_config, loaders_dict, lprogress_bar_callback
         )
 
-        metrics_df = lprogress_bar_callback.get_metrics_df()
-        metrics_df.epoch = best_epoch
-        trial_metrics = TrialMetrics(metrics_df)
+        metrics_df_list = lprogress_bar_callback.get_metrics_df_list()
+        for metrics_df in metrics_df_list:
+            metrics_df.epoch = best_epoch
+
+        trial_metrics = TrialMetrics.from_metrics_df_list(metrics_df_list)
 
         self.__check_trial_metrics(trial_metrics, metrics_dict)
 

@@ -13,11 +13,14 @@
 # limitations under the License.
 import pytest
 
+
 class TestRunner:
     @pytest.fixture
     def dummy_prerequisites_dict(self):
         import torch
-        from pytorch_hyperlight.tasks.classification import ClassificationTaskAdamWWarmup
+        from pytorch_hyperlight.tasks.classification import (
+            ClassificationTaskAdamWWarmup,
+        )
 
         # noinspection PyProtectedMember
         from torch.utils.data import DataLoader, TensorDataset
@@ -25,7 +28,7 @@ class TestRunner:
         import pytorch_hyperlight as pth
 
         def create_random_classes_datasets(
-                input_shape, n_classes, n_train=1024, n_valid=256, n_test=128
+            input_shape, n_classes, n_train=1024, n_valid=256, n_test=128
         ):
 
             train_x = torch.randn([n_train] + input_shape)
@@ -97,7 +100,9 @@ class TestRunner:
                 self.dummy_layer = nn.Linear(1, 1)
 
             def forward(self, x):
-                return torch.ones(x.shape[0], self.__n_classes, requires_grad=True, device=x.device)
+                return torch.ones(
+                    x.shape[0], self.__n_classes, requires_grad=True, device=x.device
+                )
 
         class LitDummyModule(ClassificationTaskAdamWWarmup):
             def __init__(self, hparams):

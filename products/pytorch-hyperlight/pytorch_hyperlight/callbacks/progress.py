@@ -18,6 +18,36 @@ from pytorch_lightning.callbacks import (
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 from tabulate import tabulate
 from tqdm.autonotebook import tqdm
+import copy
+from pytorch_hyperlight.metrics.trial_metrics import TrialMetrics
+import matplotlib.pyplot as plt
+from IPython.display import display
+from IPython import get_ipython
+
+
+def is_in_colab():
+    if "google.colab" in str(get_ipython()):
+        return True
+    else:
+        return False
+
+
+def is_in_notebook():
+    if is_in_colab():
+        return True
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == "ZMQInteractiveShell":  # Jupyter notebook, Spyder or qtconsole
+            import IPython
+
+            #  IPython version lower then 6.0.0 don't work with output you update
+            return IPython.__version__ >= "6.0.0"
+        elif shell == "TerminalInteractiveShell":
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False  # Probably standard Python interpreter
 
 
 class LoggingProgressBar(ProgressBar):
@@ -45,7 +75,6 @@ class LoggingProgressBar(ProgressBar):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-
         self.__metrics_df_list = []
 
         if not f_name_stage_transform:
@@ -55,6 +84,7 @@ class LoggingProgressBar(ProgressBar):
 
         self.__f_name_stage_transform = f_name_stage_transform
         self.__f_name_metric_transform = f_name_metric_transform
+        self.__is_in_notebook = is_in_notebook()
 
     def set_name_stage_transform(self, f_name_stage_transform):
         self.__f_name_stage_transform = f_name_stage_transform
@@ -108,13 +138,23 @@ class LoggingProgressBar(ProgressBar):
         metrics_df = MetricDictUtils.metrics_dict2df(metrics_dict, epoch, stage_list)
         self.__metrics_df_list.append(metrics_df)
 
-        metrics_table_str = tabulate(
-            metrics_df.drop(columns=["stage-list"]), headers="keys", tablefmt="pipe"
-        )
-        tqdm.write(metrics_table_str)
+        if self.__is_in_notebook:
+            fig, _ = TrialMetrics.from_metrics_df_list(
+                self.get_metrics_df_list()
+            ).plot()
+            if hasattr(self, "_fig_disp_id"):
+                self._fig_disp_id.update(fig)
+            else:
+                self._fig_disp_id = display(fig, display_id=True)
+            plt.close(fig)
+        else:
+            metrics_table_str = tabulate(
+                metrics_df.drop(columns=["stage-list"]), headers="keys", tablefmt="pipe"
+            )
+            tqdm.write(metrics_table_str)
 
-    def get_metrics_df(self):
-        return MetricDictUtils.metrics_df_list_concat(self.__metrics_df_list)
+    def get_metrics_df_list(self):
+        return copy.deepcopy(self.__metrics_df_list)
 
     def on_sanity_check_end(self, trainer, pl_module):
         pass
@@ -122,10 +162,8 @@ class LoggingProgressBar(ProgressBar):
     def on_train_epoch_end(self, trainer, pl_module, outputs):
         STAGE_LIST = ["train", "val"]
         super().on_train_epoch_end(trainer, pl_module, outputs)
-        self.main_progress_bar.close()
         if not trainer.running_sanity_check:
             self.__log(STAGE_LIST, trainer)
-        self.main_progress_bar = self.init_train_tqdm()
 
     def on_validation_epoch_end(self, trainer, pl_module):
         pass

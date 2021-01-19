@@ -17,6 +17,7 @@ import math
 import matplotlib.pyplot as plt
 import itertools
 from IPython.display import display
+from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 
 TRAIN_SUFFIX = "train"
 VAL_SUFFIX = "val"
@@ -109,7 +110,7 @@ class TrialMetrics:
     series_last = property(get_series_last)
 
     @staticmethod
-    def create_axes(n_graphs, figsize=None, max_cols=2):
+    def create_subplots(n_graphs, figsize=None, max_cols=2):
         SUBPLOT_WIDTH = 20
         SUBPLOT_HEIGHT = 12
         MAX_COLS = max_cols
@@ -121,7 +122,7 @@ class TrialMetrics:
         ax_list = [None] * n_graphs
         for i_graph in range(n_graphs):
             ax_list[i_graph] = fig.add_subplot(n_rows, n_cols, i_graph + 1)
-        return ax_list
+        return fig, ax_list
 
     def plot(self, **kwargs):
         cols2drop_list = list(
@@ -142,7 +143,7 @@ class TrialMetrics:
         metric_name_list = list(set(df.columns.get_level_values(0)))
         n_metrics = len(metric_name_list)
 
-        ax_list = self.create_axes(n_metrics, **kwargs)
+        fig, ax_list = self.create_subplots(n_metrics, **kwargs)
 
         for i_metric, ax in enumerate(ax_list):
             metric_name = metric_name_list[i_metric]
@@ -151,6 +152,11 @@ class TrialMetrics:
             metric_df.index = metric_df.index.droplevel(0)
             style_list = get_df_column_styles(metric_df)
             self.plot_df_with_dropped_nans(metric_df, ax, style_list, ms=5, grid=True)
+        return fig, ax_list
+
+    @staticmethod
+    def from_metrics_df_list(metrics_df_list):
+        return TrialMetrics(MetricDictUtils.metrics_df_list_concat(metrics_df_list))
 
     @staticmethod
     def plot_df_with_dropped_nans(df, ax, style_list, **kwargs):
