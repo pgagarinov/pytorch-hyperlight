@@ -15,6 +15,7 @@
 import torch
 import pandas as pd
 from copy import deepcopy
+import re
 
 
 class MetricDictUtils:
@@ -60,8 +61,27 @@ class MetricDictUtils:
         return df
 
     @staticmethod
+    def get_list_prefix_list(key_list, split_symbol_list=("_")):
+        if isinstance(split_symbol_list, str):
+            split_symbol_list = split_symbol_list
+
+        split_re = "|".join(split_symbol_list)
+        return [re.split(split_re, k, 1)[0] for k in key_list]
+
+    @staticmethod
     def get_prefix_list(metrics_dict):
-        return [k.split("_", 1)[0] for k in metrics_dict.keys()]
+        return MetricDictUtils.get_list_prefix_list(metrics_dict.keys())
+
+    @staticmethod
+    def filter_by_prefix(metrics_dict, prefixes2keep_list):
+        key_list = metrics_dict.keys()
+        prefix_list = MetricDictUtils.get_list_prefix_list(key_list)
+        res_metrics_dict = {
+            key: metrics_dict[key]
+            for prefix, key in zip(prefix_list, key_list)
+            if prefix in prefixes2keep_list
+        }
+        return res_metrics_dict
 
     @staticmethod
     def get_prefix_set(metrics_dict):

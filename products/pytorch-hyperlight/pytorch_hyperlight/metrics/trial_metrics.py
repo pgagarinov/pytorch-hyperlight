@@ -85,6 +85,26 @@ class TrialMetrics:
             )
         ]
         metrics_df["stage-list"] = metrics_df["stage-list"].apply(tuple)
+
+        col_stage_list = MetricDictUtils.get_list_prefix_list(
+            metrics_df.columns, split_symbol_list=["_", "-"]
+        )
+        for i_col, col in enumerate(metrics_df.columns):
+            if col in self.ALL_INDEX_COLUMN_LIST:
+                continue
+            col_stage = col_stage_list[i_col]
+            stage_list = (
+                metrics_df.loc[~metrics_df[col].isna(), "stage-list"]
+                .apply(set)
+                .tolist()
+            )
+
+            bad_stage_list = [x for x in stage_list if col_stage not in x]
+
+            assert (
+                len(bad_stage_list) == 0
+            ), f'column "{col}" related to stage "{col_stage}" contains not NaN values for stages {bad_stage_list}'
+
         self.__metrics_df = metrics_df
 
     @staticmethod

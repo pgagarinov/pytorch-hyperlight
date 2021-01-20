@@ -122,6 +122,7 @@ class LoggingProgressBar(ProgressBar):
         metrics_dict = MetricDictUtils.filter_n_round_epoch_metrics(
             trainer.progress_bar_dict
         )
+        metrics_dict = MetricDictUtils.filter_by_prefix(metrics_dict, stage_list)
 
         metric_prefix_set = MetricDictUtils.get_prefix_set(metrics_dict)
 
