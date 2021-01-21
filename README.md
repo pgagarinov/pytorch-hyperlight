@@ -5,6 +5,14 @@
 
  * *Neither the author nor the project do not have any relation to PyTorch-Lightning Team or Ray project.*
  * *PyTorch Hyperlight is not a fork as it does not modify (and there are no such plans) any of PyTorch-Lightning or Ray Tune code and is built on top of the forementioned frameworks.*
+ 
+ 
+## Examples
+
+| | | |
+|-|-|-|
+|[🔍 Image Classification](#image-classification) |[🌀 Semantic Segmentation](#semantic-segmentation) | [:loop: Neural Style Transfer](#neural-style-transfer)|
+
 
 ## PyTorch Hyperlight key principles
  * *No wheel reinvention* Parts of PyTorch Lightning or Ray Tune that already provide simple enough interfaces are used as is. PyTorch Hyperlight just makes use of those frameworks easier by minimizing an amount of boilerplate code.
@@ -519,6 +527,12 @@ runner.get_metrics()['epoch_x_stage_run_metric'].df
     
 # Examples
 ## Jupyter notebooks
+### Image classification
 1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist.ipynb)
 2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist_model_comparison.ipynb)
-3. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation_model_comparison.ipynb)
+### Semantic segmentation
+1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation_model_comparison.ipynb)
+
+### Neural style transfer
+1. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/multi_style_nst.ipynb)
+
