@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pytorch_lightning.callbacks import (
-    ProgressBar, ProgressBarBase
-)
+from pytorch_lightning.callbacks import ProgressBar, ProgressBarBase
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 from tabulate import tabulate
 from tqdm.autonotebook import tqdm

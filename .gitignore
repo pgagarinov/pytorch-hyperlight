@@ -16,3 +16,4 @@ build
 dist
 **.pickle
 **.rar
+**.bak

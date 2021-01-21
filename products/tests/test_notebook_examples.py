@@ -19,24 +19,33 @@ import tempfile
 import pytest
 
 
+EXAMPLES_FOLDER = Path(__file__).parents[2] / "products" / "examples"
+
+
+def get_notebook_list():
+    glob_iter = EXAMPLES_FOLDER.glob("*.ipynb")
+    notebook_files = [x for x in glob_iter if x.is_file()]
+    notebook_files = [
+        file_name for file_name in notebook_files if not file_name.name.startswith("_")
+    ]
+    notebook_files = sorted(notebook_files)
+    return notebook_files
+
+
 class TestExampleNotebooks:
     @staticmethod
-    def run_notebook(file_name):
-        notebook_filename = (
-            Path(__file__).parents[2] / "products" / "examples" / file_name
-        )
+    def run_notebook(notebook_filename, fast_dev_run=False, out_file=None):
         with tempfile.TemporaryDirectory() as tmp_dir_name:
-            out_file = Path(tmp_dir_name) / file_name
+            assert len(tmp_dir_name) > 1
+            if out_file is None:
+                out_file = Path(tmp_dir_name) / notebook_filename.name
             pm.execute_notebook(
                 notebook_filename,
                 out_file,
-                {"FAST_DEV_RUN": True},
+                {"FAST_DEV_RUN": fast_dev_run},
             )
 
+    @pytest.mark.parametrize("file_name", get_notebook_list(), ids=lambda x: x.name)
     @pytest.mark.forked
-    def test_boring_mnist_example(self):
-        self.run_notebook("boring_mnist.ipynb")
-
-    @pytest.mark.forked
-    def test_boring_mnist_model_comparison(self):
-        self.run_notebook("boring_mnist_model_comparison.ipynb")
+    def test_run_examples(self, file_name):
+        self.run_notebook(file_name, fast_dev_run=True)
