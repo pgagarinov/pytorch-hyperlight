@@ -521,8 +521,6 @@ runner.get_metrics()['run_x_last_metric_df']
 #### Get the time-series metrics for both single-run and hyper-parameter optimization as Pandas DataFrame
 ```python
 runner.get_metrics()['epoch_x_stage_run_metric'].df
-```
-<img src="https://user-images.githubusercontent.com/4868370/105352363-da773b80-5bfe-11eb-8b4c-50b69f4ec0ec.png" width="800px">
 
     
 # Examples
