@@ -446,21 +446,21 @@ best_results["lmodule_best"]
 ```python
 best_result["metrics"].show_report()
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_report.png" width="800px">
+<img src="https://user-images.githubusercontent.com/4868370/105352340-d3502d80-5bfe-11eb-9c71-8a700739e78d.png" width="800px">
 
 ##### Access the trial metrics as Pandas dataframe:
 
 ```python
 best_result["metrics"].df
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_df.png" width="800px">
+<img src="https://user-images.githubusercontent.com/4868370/105352327-d0edd380-5bfe-11eb-8610-7a120bf6b61f.png" width="800px">
 
 ##### the last observed metrics as Pandas series
 
 ```python
 best_result["metrics"].series_last
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_metrics_series_last.png" width="180px">
+<img src="https://user-images.githubusercontent.com/4868370/105352347-d5b28780-5bfe-11eb-8f32-607929f8e8e5.png" width="180px">
 
 
 #### 7. Run a hyper-parameter search by defining Ray Tune search space and calling `run_hyper_opt` method of the runner
@@ -509,20 +509,20 @@ best_result["analysis"]
 ```python
 runner.show_metric_report(sort_by_metric_list=['test_f1', 'test_acc', "test_loss"])
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_runner_report.png" width="800px">
+<img src="https://user-images.githubusercontent.com/4868370/105352372-dd722c00-5bfe-11eb-9bfb-351b02a82f42.png" width="800px">
 
 #### Get the last observed metrics for both single-run and hyper-parameter optimization as Pandas DataFrame
 ```python
 runner.get_metrics()['run_x_last_metric_df']
 ```
     
-<img src="products/pytorch-hyperlight/docs/_images/ph_runner_run_x_last_metric_df.png" width="800px">
+<img src="https://user-images.githubusercontent.com/4868370/105352379-e06d1c80-5bfe-11eb-960f-b549cdba4952.png" width="800px">
     
 #### Get the time-series metrics for both single-run and hyper-parameter optimization as Pandas DataFrame
 ```python
 runner.get_metrics()['epoch_x_stage_run_metric'].df
 ```
-<img src="products/pytorch-hyperlight/docs/_images/ph_runner_epoch_x_stage_run_metric_df.png" width="800px">
+<img src="https://user-images.githubusercontent.com/4868370/105352363-da773b80-5bfe-11eb-8b4c-50b69f4ec0ec.png" width="800px">
 
     
 # Examples
