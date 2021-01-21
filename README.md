@@ -12,7 +12,10 @@
 | | | |
 |-|-|-|
 |[🔍 Image Classification](#image-classification) |[🌀 Semantic Segmentation](#semantic-segmentation) | [:loop: Neural Style Transfer](#neural-style-transfer)|
-|[](#image-classification) |[](#semantic-segmentation) | [<img src="https://user-images.githubusercontent.com/4868370/105351527-bff09280-5bfd-11eb-8d6e-01f470bf49a4.png" width="200">](#neural-style-transfer)|
+|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="200">](#image-classification) |[](#semantic-segmentation) | [<img src="https://user-images.githubusercontent.com/4868370/105351527-bff09280-5bfd-11eb-8d6e-01f470bf49a4.png" width="200">](#neural-style-transfer)|
+
+
+
 
 ## PyTorch Hyperlight key principles
  * *No wheel reinvention* Parts of PyTorch Lightning or Ray Tune that already provide simple enough interfaces are used as is. PyTorch Hyperlight just makes use of those frameworks easier by minimizing an amount of boilerplate code.
