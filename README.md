@@ -12,7 +12,7 @@
 | | | |
 |-|-|-|
 |[🔍 Image Classification](#image-classification) |[🌀 Semantic Segmentation](#semantic-segmentation) | [:loop: Neural Style Transfer](#neural-style-transfer)|
-|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="200">](#image-classification) |[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Sample_segmentation_HMRF-EM.png/330px-Sample_segmentation_HMRF-EM.png" width="200">](#semantic-segmentation) | [<img src="https://user-images.githubusercontent.com/4868370/105351527-bff09280-5bfd-11eb-8d6e-01f470bf49a4.png" width="200">](#neural-style-transfer)|
+|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="200">](#image-classification) |[<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Sample_segmentation_HMRF-EM.png/330px-Sample_segmentation_HMRF-EM.png" width="200">](#semantic-segmentation) | [<img class="animated-gif" src="https://user-images.githubusercontent.com/4868370/105389270-b6c8eb00-5c28-11eb-9362-dd1c038b18a2.gif" width="200">](#neural-style-transfer)|
 
 
 
