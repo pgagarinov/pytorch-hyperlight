@@ -26,7 +26,7 @@
 
 ## Features 
  * All hyper-parameters are defined in a single dictionary.
- * Plotting of training, validation and testing stage metrics.
+ * Plotting of training, validation and testing stage metrics during and after training.
  * Trial comparison reports in form of both tables and graphs.
  * Pre-configured integration with Ray Tune for [ASHA](https://docs.ray.io/en/master/tune/api_docs/schedulers.html#tune-scheduler-hyperband) scheduler and [HyperOpt](https://docs.ray.io/en/latest/tune/api_docs/suggestion.html#hyperopt-tune-suggest-hyperopt-hyperoptsearch) optimization algorithm for out of the box hyper-parameter tuning.
  * Logging the training progress on console (via [tabule](https://github.com/astanin/python-tabulate) library)
