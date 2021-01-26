@@ -546,6 +546,7 @@ class BaseRunner:
         train_loader_name = extra_config["train_loader_name"]
         train_loader = loaders_dict[train_loader_name]
         #
+        config["n_steps_per_epoch"] = len(train_loader)
         config["n_train_steps"] = len(train_loader) * config["max_epochs"]
         #
         if checkpoint_dir:
