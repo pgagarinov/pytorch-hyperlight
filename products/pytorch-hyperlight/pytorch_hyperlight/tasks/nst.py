@@ -11,6 +11,7 @@ import torch
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.optim import Adam
+from pytorch_hyperlight.utils.image_utils import load_image_as_resized_tensor
 
 
 IMAGE_MEAN_VEC = torch.tensor([0.485, 0.456, 0.406])
@@ -375,20 +376,21 @@ class LitVGG19StyleTransfer(pl.LightningModule):
 
 # Since PyTorch-Lightning assumes is passed via dataloader we will create the dummy dataloader
 # with the single purpose of triggering the PyTorch-Lightning optimization loop. We will also assume
-# that our batch size is 1, number of steps per epoch is 30. This way we will minimeze PyTorch-Lightning
-# overhead (up to ~300ms per epoch) which would hit is if we used 1 step per epoch.
+# that our batch size is 1, number of steps per epoch is defined by n_dummy_samples parameter.
+# This way we will minimize PyTorch-Lightning overhead (up to ~300ms per epoch) which would hit us
+# if we used 1 step per epoch.
 
 
-class NSTDataset(Dataset):
-    def __init__(self, n_dummy_samples, content_image, style_image_list):
+class NSTImageTensorDataset(Dataset):
+    def __init__(self, n_dummy_samples, content_image_tensor, style_image_tensor_list):
         self.__n_dummy_samples = n_dummy_samples
-        self.__content_image = content_image
-        self.__style_image_list = style_image_list
+        self.__content_image_tensor = content_image_tensor
+        self.__style_image_tensor_list = style_image_tensor_list
 
     def __getitem__(self, ind):
         if ind == 0:
-            x = self.__content_image
-            y = self.__style_image_list
+            x = self.__content_image_tensor
+            y = self.__style_image_tensor_list
         else:  # dummy data
             x = -1
             y = -1
@@ -398,7 +400,7 @@ class NSTDataset(Dataset):
         return self.__n_dummy_samples
 
 
-class NSTDataLoader(DataLoader):
+class NSTImageTensorDataLoader(DataLoader):
     #
     #  dummy samples serve the only purpose of reducing the epoch overhead of PyTorch-Lightning
     #  without dummy samples would only have a single sample in the dataset which would lead to
@@ -406,10 +408,27 @@ class NSTDataLoader(DataLoader):
     #  300ms in PyTorch Lightning. When N_DUMMY_SAMPLES> 1 and batch_size = 1 the epoch increment
     #  happens every N_DUMMY_SAMPLES samples
     #
-    N_DUMMY_SAMPLES = 30
-
-    def __init__(self, content_image, style_image_list):
-        train_dataset = NSTDataset(
-            self.N_DUMMY_SAMPLES, content_image, style_image_list
+    def __init__(self, n_dummy_samples, content_image, style_image_list):
+        train_dataset = NSTImageTensorDataset(
+            n_dummy_samples, content_image, style_image_list
         )
         super().__init__(train_dataset)
+
+
+class NSTImageFileDataLoader(NSTImageTensorDataLoader):
+    def __init__(
+        self, n_dummy_samples, target_image_height, content_file, style_file_list
+    ):
+        content_image_tensor = load_image_as_resized_tensor(
+            content_file, image_size=target_image_height
+        )
+        style_image_tensor_list = []
+        for style_file in style_file_list:
+            style_image_tensor = load_image_as_resized_tensor(
+                style_file,
+                image_size=list(content_image_tensor.shape)[1:],
+                use_crop=True,
+            )
+            style_image_tensor_list.append(style_image_tensor)
+
+        super().__init__(n_dummy_samples, content_image_tensor, style_image_tensor_list)
