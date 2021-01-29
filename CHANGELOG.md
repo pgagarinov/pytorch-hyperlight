@@ -21,6 +21,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.2.4] - 2021-01-29
+
+### Fixed
+- "torch" pipy package was referred to as pytorch in requirements.txt which results in failure to install pytorch_hyperlight via pip
+
+
 ## [0.2.3] - 2021-01-29
 
 ### Added
