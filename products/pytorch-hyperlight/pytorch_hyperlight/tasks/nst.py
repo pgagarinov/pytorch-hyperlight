@@ -429,7 +429,7 @@ class NSTImageTensorDataLoader(DataLoader):
         super().__init__(train_dataset)
 
 
-class NSTImageFileDataLoader(NSTImageTensorDataLoader):
+class NSTImageUrlOrPathDataLoader(NSTImageTensorDataLoader):
     def __init__(
         self, n_dummy_samples, target_image_height, content_file, style_file_list
     ):
@@ -441,7 +441,7 @@ class NSTImageFileDataLoader(NSTImageTensorDataLoader):
             style_image_tensor = load_image_as_resized_tensor(
                 style_file,
                 image_size=list(content_image_tensor.shape)[1:],
-                use_crop=True,
+                crop=True,
             )
             style_image_tensor_list.append(style_image_tensor)
 

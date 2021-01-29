@@ -10,3 +10,7 @@ requests # == 2.25.1
 torchvision # == 0.8.2
 pillow # == 8.1.0 
 matplotlib # == 3.3.3
+validators # == 0.18.2
+boto3 # == 1.16.50
+pytorch # == 1.7.1
+torchvision # == 0.8.2
