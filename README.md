@@ -530,9 +530,12 @@ runner.get_metrics()['epoch_x_stage_run_metric'].df
 ### Image classification
 1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist.ipynb)
 2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist_model_comparison.ipynb)
+3. [Vision Transformer (ViT) vs EfficientNet for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/
+face_image_classification_gender_vit_vs_efficientnet.ipynb)
 ### Semantic segmentation
 1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation_model_comparison.ipynb)
 
 ### Neural style transfer
-1. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/multi_style_nst.ipynb)
+1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/plain_simple_nst.ipynb)
+2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/multi_style_nst.ipynb)
 
