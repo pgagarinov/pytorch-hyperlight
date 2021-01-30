@@ -71,6 +71,7 @@ dependencies:
     - bpemb==0.3.2
     - torchsummary==1.5.1
     - ray[tune]==1.1.0
+    - ray[serve]==1.1.0
     - wandb==0.10.12
     - efficientnet-pytorch==0.7.0
     - networkx==2.5

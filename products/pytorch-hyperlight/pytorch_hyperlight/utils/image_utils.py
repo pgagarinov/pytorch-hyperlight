@@ -17,11 +17,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from pytorch_hyperlight.utils.request_utils import (
     load_url_or_path_as_bytes,
-    split_s3_url,
+    copy_fileobj_to_s3,
 )
 import io
 from torchvision.utils import save_image
-import boto3
 import mimetypes
 
 
@@ -88,9 +87,6 @@ def save_image_tensor_to_url(image_tensor, image_url, s3_resource=None):
         assert image_type == "image"
         save_image(image_tensor, in_mem_file, format=guessed_format)
         in_mem_file.seek(0)
-        if s3_resource is None:
-            s3_resource = boto3.Session().resource("s3")
-        bucket_name, key = split_s3_url(image_url)
-        s3_resource.Bucket(bucket_name).Object(key).upload_fileobj(in_mem_file)
+        copy_fileobj_to_s3(in_mem_file, image_url, s3_resource=s3_resource)
     else:  # assume local file
         save_image(image_tensor, image_url)

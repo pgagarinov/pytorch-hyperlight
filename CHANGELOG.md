@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
-
+- ray[serve] as a new dependency for MLDev
+- new copy_file_to_s3 and copy_fileobj_to_s3 functions
 
 ### Changed
 

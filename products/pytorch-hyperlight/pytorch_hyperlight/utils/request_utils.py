@@ -16,6 +16,7 @@ import requests
 import boto3
 import validators
 import io
+from pathlib import PurePath
 
 REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
@@ -57,3 +58,18 @@ def load_url_or_path_as_bytes(image_url_or_path, s3_resource=None):
             image_as_bytes = f.read()
     image_as_bytes = io.BytesIO(image_as_bytes)
     return image_as_bytes
+
+
+def copy_file_to_s3(file, s3_url, s3_resource=None):
+    if isinstance(file, str) or isinstance(file, PurePath):
+        with open(file, "rb") as f:
+            copy_fileobj_to_s3(f, s3_url, s3_resource=s3_resource)
+    else:
+        copy_fileobj_to_s3(file, s3_url, s3_resource=s3_resource)
+
+
+def copy_fileobj_to_s3(file_like_obj, s3_url, s3_resource=None):
+    bucket_name, key = split_s3_url(s3_url)
+    if s3_resource is None:
+        s3_resource = boto3.Session().resource("s3")
+    s3_resource.Bucket(bucket_name).Object(key).upload_fileobj(file_like_obj)
