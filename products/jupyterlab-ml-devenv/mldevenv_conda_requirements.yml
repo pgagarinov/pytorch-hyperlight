@@ -51,6 +51,7 @@ dependencies:
   - pillow==8.1.0
   - boto3==1.16.50
   - pip:
+    - gym==0.18.0
     - pytorch-lightning-bolts==0.3.0
     - timm==0.3.4
     - pyyaml==5.3.1
