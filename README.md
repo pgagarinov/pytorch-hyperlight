@@ -3,7 +3,7 @@
 **The ML micro-framework built as a thin wrapper around [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) to push the boundaries of simplicity even further.**
 
 
- * *Neither the author nor the project do not have any relation to PyTorch-Lightning Team or Ray project.*
+ * *Neither the author nor the project does not have any relation to PyTorch-Lightning Team or Ray project.*
  * *PyTorch Hyperlight is not a fork as it does not modify (and there are no such plans) any of PyTorch-Lightning or Ray Tune code and is built on top of the forementioned frameworks.*
  
  
