@@ -18,7 +18,6 @@ source /opt/miniconda/bin/activate
 conda env create -n ml-devenv python=3.8
 conda activate ml-devenv
 ./install_all.sh
-conda deactivate ml-devenv
-conda activate ml-devenv
-jupyter lab --no-browser --port 8889
+./init_dl.sh ml-devenv
 ```
+Optionally run `./init_dl.sh ml-devenv` to launch the JupyterLab server, TensorBoard server and MLFlow server.
