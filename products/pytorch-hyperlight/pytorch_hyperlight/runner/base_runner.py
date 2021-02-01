@@ -449,17 +449,13 @@ class BaseRunner:
             TRAINER_KWARG_DICT["weights_summary"] = None
         else:
             PTL_CHECKPOINT_PERIOD = 1
-            PTL_CHECKPOINT_SAVE_TOP_K = 3
+            PTL_CHECKPOINT_SAVE_TOP_K = 2
             #
-            metric2optimize = extra_config["metric_to_optimize"]
             checkpoint_callback = ModelCheckpoint(
                 monitor=extra_config["metric_to_optimize"],
                 mode=extra_config["metric_opt_mode"],
                 save_top_k=PTL_CHECKPOINT_SAVE_TOP_K,
                 period=PTL_CHECKPOINT_PERIOD,
-                filename="sample-mnist-{epoch:02d}-{val_loss:.6f}-{metric2optimize:.6f}".replace(
-                    "{metric2optimize", "{" + f"{metric2optimize}"
-                ),
             )
             pl_callbacks.append(checkpoint_callback)
 

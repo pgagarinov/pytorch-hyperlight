@@ -10,9 +10,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 - gym, timm and pytorch-lightning-bolts packages to mldev as dependencies
 - ray[serve] as a new dependency for MLDev
-- new copy_file_to_s3 and copy_fileobj_to_s3 functions
+- New copy_file_to_s3 and copy_fileobj_to_s3 functions
 
 ### Changed
+- Improved face_image_classification_gender_vit_vs_efficientnet.ipynb by using data augmentation based Albumentations library, 
+added class imbalance plotting and displaying sample images, number of trials for each model is reduced down to 1
+- Default number of checkpoints kept by PyTorch-Hyperlight in a single-trial model is reduced down to 2
 
 
 ### Deprecated
@@ -22,6 +25,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ### Fixed
+- Classifier head was not trained in face_image_classification_gender_vit_vs_efficientnet.ipynb example due to the incorrect classifier 
+head paramter names
+- Checkpoint file names in 'singe-trial' mode contain confusing prefix and a value of val_loss of the last epoch step. 
+This is fixed by reverting back to the checkpoint naming scheme used by PyTorch Lightning by default. 
 
 ## [0.2.4] - 2021-01-29
 
