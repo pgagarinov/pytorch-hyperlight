@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/bin/bash
-set -e
-pip_list_jupyter_ver_output="$(pip list|grep 'jupyterlab.*3.0.1')"
+#!/bin/zsh
+# set -e
+pip_list_jupyter_ver_output="$(pip list|grep 'jupyterlab.*3.0.6')"
 if [ -z "$pip_list_jupyter_ver_output" ]; then
   pip_list_jupyter_output="$(pip list|grep 'jupyterlab\ ')"
   echo "!!!!>>>>A rogue version of jupyterlab was found and needs to be removed: '$pip_list_jupyter_output' <<<<!!!!"

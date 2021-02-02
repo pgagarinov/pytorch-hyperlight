@@ -27,7 +27,7 @@ reqs = [str(ir.requirement) for ir in install_reqs]
 
 setup(
     name=NAME,
-    version="0.2.4",
+    version="0.2.5",
     description="PyTorch Hyperlight is ML micro-framework built as a thin wrapper around PyTorch-Lightning and Ray Tune frameworks to push the boundaries of simplicity even further.",
     long_description="",
     author="Peter Gagarinov",

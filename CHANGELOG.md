@@ -5,30 +5,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
+
+
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
-- gym, timm and pytorch-lightning-bolts packages to mldev as dependencies
-- ray[serve] as a new dependency for MLDev
-- New copy_file_to_s3 and copy_fileobj_to_s3 functions
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
+## [0.2.5] - 2021-02-02
+
+### Added
+- The following packaes were added to MLDev:
+   - gym==0.18.0
+   - pytorch-lightning-bolts==0.3.0
+   - timm==0.3.4
+   - ray[serve]==1.1.0
+   - pipdeptree==2.0.0
+
+- New copy_file_to_s3 and copy_fileobj_to_s3 functions in pytorch_hyperlight.utils.request_utils package
+
 
 ### Changed
 - Improved face_image_classification_gender_vit_vs_efficientnet.ipynb by using data augmentation based Albumentations library, 
 added class imbalance plotting and displaying sample images, number of trials for each model is reduced down to 1
 - Default number of checkpoints kept by PyTorch-Hyperlight in a single-trial model is reduced down to 2
-
+- Many packages in MLDev has been updated:
+   - scikit-learn==0.24.1
+   - pandas==1.2.1
+   - numpy==1.20.0
+   - pip==21.0.1
+   - ipython==7.20.0
+   - matplotlib==3.3.4
+   - tqdm==4.55.1
+   - captum==0.3.1
+   - xeus-python==0.10.2
+   - tensorboard==2.4.1
+   - papermill==2.3.1
+   - scikit-image==0.18.1
+   - notebook==6.2.0
+   - jupyterlab==3.0.6
+   - jupyterlab-lsp==3.3.0
+   - jupyterlab_code_formatter==1.4.3
+   - ipympl==0.6.3
+   - pytorch-lightning==1.1.6
+   - boto3==1.16.63
+   - psutil==5.8.0
+   - transformers==4.2.2
+   - wandb==0.10.17
+   - pytest==6.2.2
+   - coverage==5.4
+- The following packages were downgraded
+   - pillow==7.2.0 # because gym package requires the older version
 
 ### Deprecated
 
 
 ### Removed
-
+- The following packages were temporarily remoted from MLDev
+  - datasets (as it requires tqdm<4.50)
 
 ### Fixed
 - Classifier head was not trained in face_image_classification_gender_vit_vs_efficientnet.ipynb example due to the incorrect classifier 
 head paramter names
 - Checkpoint file names in 'singe-trial' mode contain confusing prefix and a value of val_loss of the last epoch step. 
 This is fixed by reverting back to the checkpoint naming scheme used by PyTorch Lightning by default. 
+- check_if_rogue_jupyterlab_is_installed.sh script in MLDev silently crashes when JupyterLab version doesn't match the expected version
 
 ## [0.2.4] - 2021-01-29
 
