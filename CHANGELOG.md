@@ -29,12 +29,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
     - dominate==2.6.0
   - NST model builder in pytorch_hyperlight.tasks.nst module now checks that style_weight_list has the same length as style_image_list
 
-### Changed
-
-### Deprecated
-
-### Removed
-
 ### Fixed
   - plain_simple_nst.ipynb ignores all stypes except for the first one
 
