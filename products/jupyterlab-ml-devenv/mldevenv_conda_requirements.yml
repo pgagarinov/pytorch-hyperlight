@@ -97,3 +97,8 @@ dependencies:
     - kaggle==1.5.10
     - pytorch-pretrained-vit==0.0.7
     - pipdeptree==2.0.0
+    - ml_collections==0.1.0
+    - kornia==0.4.1
+    - opencv-python==4.5.1.48
+    - visdom==0.1.8.9
+    - dominate==2.6.0

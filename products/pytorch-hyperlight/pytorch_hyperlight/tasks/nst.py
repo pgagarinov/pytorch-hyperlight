@@ -158,6 +158,11 @@ class LossModel(nn.Module):
             style_loss.set_mode(mode)
 
     def set_images(self, content_image, style_image_list):
+        n_style_images = len(style_image_list)
+        n_style_wights = len(self.__style_weight_list)
+        assert n_style_images == n_style_wights, \
+            (f'number of style images {n_style_images} is different' +
+             f' from the number of style weights {n_style_wights}')
         self.__set_mode(ELossLayerMode.CaptureTarget)
         input = torch.cat([content_image] + style_image_list, axis=0)
         self.__model(input)

@@ -4,9 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-
-
-
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
@@ -19,6 +16,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.2.6] - 2021-02-03
+
+### Added
+  - MLDev dependencies
+    - visdom==0.1.8.9
+    - dominate==2.6.0
+    - ml_collections==0.1.0
+    - kornia==0.4.1
+    - opencv-python==4.5.1.48
+    - visdom==0.1.8.9
+    - dominate==2.6.0
+  - NST model builder in pytorch_hyperlight.tasks.nst module now checks that style_weight_list has the same length as style_image_list
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+  - plain_simple_nst.ipynb ignores all stypes except for the first one
 
 ## [0.2.5] - 2021-02-02
 
