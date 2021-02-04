@@ -27,7 +27,7 @@ if [ -z "$pip_list_jupyter_ver_output" ]; then
     rm $HOME/.local/etc/jupyter/jupyter_notebook_config.d/jupyterlab.json
     rm -rf $HOME/.local/lib/python3.8/site-packages/jupyter*
     rm -rf $HOME/.local/share/jupyter/"
-
+  exit 1 
 else
   echo "$pip_list_jupyter_ver_output is installed"
 fi

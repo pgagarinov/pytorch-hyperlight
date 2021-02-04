@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 ### Fixed
-
+ - ./check_if_rogue_jupyterlab_is_installed.sh doesn't fail if rogue version is found
 ## [0.2.6] - 2021-02-03
 
 ### Added
