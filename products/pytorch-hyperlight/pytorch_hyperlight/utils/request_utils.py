@@ -44,10 +44,10 @@ def copy_urls_to_files(url_list, file_name_list, **kwargs):
 
 def load_url_or_path_as_bytes(image_url_or_path, s3_resource=None):
     image_url_or_path = str(image_url_or_path)
-    if s3_resource is None:
-        s3_resource = boto3.Session().resource("s3")
     image_url = image_url_or_path.strip()
     if image_url.startswith("s3://"):
+        if s3_resource is None:
+            s3_resource = boto3.Session().resource("s3")
         bucket_name, key = split_s3_url(image_url)
         image_obj = s3_resource.Object(bucket_name=bucket_name, key=key)
         image_as_bytes = image_obj.get()["Body"].read()

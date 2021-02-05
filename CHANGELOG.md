@@ -7,7 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
-
+ - new MLDev Python packages as dependencies
+    - gitpython==3.1.12
+    - wget==3.2
+  
 ### Changed
 
 ### Deprecated
@@ -16,6 +19,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
  - ./check_if_rogue_jupyterlab_is_installed.sh doesn't fail if rogue version is found
+ - copy_urls_to_files creates Boto3 session even for https urls
+
+
 ## [0.2.6] - 2021-02-03
 
 ### Added

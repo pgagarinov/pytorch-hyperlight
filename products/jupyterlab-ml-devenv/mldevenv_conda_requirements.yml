@@ -102,3 +102,5 @@ dependencies:
     - opencv-python==4.5.1.48
     - visdom==0.1.8.9
     - dominate==2.6.0
+    - gitpython==3.1.12
+    - wget==3.2
