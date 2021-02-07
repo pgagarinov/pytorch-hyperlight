@@ -34,8 +34,14 @@ def _calc_scale_factor(image_size, orig_image_size, fn_opt=max):
     return scale_factor
 
 
-def load_image_as_resized_tensor(image_url_or_path, image_size=None, crop=False):
-    image_bytes = load_url_or_path_as_bytes(image_url_or_path)
+def load_image_as_resized_tensor(
+    image_url_or_path_or_bytes, image_size=None, crop=False
+):
+    if isinstance(image_url_or_path_or_bytes, io.BytesIO):
+        image_bytes = image_url_or_path_or_bytes
+    else:
+        image_bytes = load_url_or_path_as_bytes(image_url_or_path_or_bytes)
+
     image = Image.open(image_bytes)
     image = transforms.ToTensor()(image)
     orig_image_size = list(image.shape)[1:]
@@ -50,11 +56,16 @@ def load_image_as_resized_tensor(image_url_or_path, image_size=None, crop=False)
         new_image_size = [int(sz * scale_factor) for sz in orig_image_size]
     else:
         new_image_size = image_size
+
+    if isinstance(image_size, list):
+        new_image_size = [max(x, y) for x, y in zip(new_image_size, image_size)]
+
     if new_image_size is not None:
         image = transforms.Resize(new_image_size)(image)
     if crop:
         if image_size is not None:
             image = transforms.CenterCrop(image_size)(image)
+
     return image
 
 
