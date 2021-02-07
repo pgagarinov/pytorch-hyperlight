@@ -25,12 +25,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
     - wget==3.2
  - unit tests for load_image_as_resized_tensor  
 
-### Changed
-
-### Deprecated
-
-### Removed
-
 ### Fixed
  - ./check_if_rogue_jupyterlab_is_installed.sh doesn't fail if rogue version is found
  - copy_urls_to_files creates Boto3 session even for https urls
