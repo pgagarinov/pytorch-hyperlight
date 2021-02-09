@@ -16,6 +16,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.2.8] - 2021-02-09
+
+### Added
+ - unit tests for load_image_as_resized_tensor that make sure the function works with images with different number of color channels
+
+### Fixed
+ - nst pipeline fails when content and style images contain different number of color channels
 
 ## [0.2.7] - 2021-02-07
 

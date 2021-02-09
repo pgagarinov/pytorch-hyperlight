@@ -35,7 +35,7 @@ def _calc_scale_factor(image_size, orig_image_size, fn_opt=max):
 
 
 def load_image_as_resized_tensor(
-    image_url_or_path_or_bytes, image_size=None, crop=False
+    image_url_or_path_or_bytes, image_size=None, crop=False, to_rgb=True
 ):
     if isinstance(image_url_or_path_or_bytes, io.BytesIO):
         image_bytes = image_url_or_path_or_bytes
@@ -43,6 +43,9 @@ def load_image_as_resized_tensor(
         image_bytes = load_url_or_path_as_bytes(image_url_or_path_or_bytes)
 
     image = Image.open(image_bytes)
+    if to_rgb:
+        image = image.convert("RGB")
+
     image = transforms.ToTensor()(image)
     orig_image_size = list(image.shape)[1:]
     if isinstance(image_size, list):
