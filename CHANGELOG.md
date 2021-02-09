@@ -7,8 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
+ - ViT attention analysis and references are added to "face_image_classification_gender_vision_transformer.ipynb" Jupyter notebook
 
 ### Changed
+ - "face_image_classification_gender_vit_vs_efficientnet.ipynb" Jupyter notebook is renamed to "face_image_classification_gender_vision_transformer.ipynb"
 
 ### Deprecated
 
