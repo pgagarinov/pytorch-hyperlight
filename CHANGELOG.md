@@ -8,9 +8,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
  - ViT attention analysis, ViT positional embedding analysis and references are added to "face_image_classification_gender_vision_transformer.ipynb" Jupyter notebook
+ - The new PTH dependencies:
+   - kaggle==1.5.10
+ - create_subplots function in pytorch_hyperlight.utils.plot_utils for easy creation of subplots
+ - pytorch_hyperlight.datasets.kaggle.utkfaces module containing the functions for creating dataloaderes for UTKFaces dataset from Kaggle
+ - pytorch_hyperlight.tasks.classification.AAutoClsHeadClassificationTaskAdamStepLR class for automating the creation of classification heads for different classification models including CNNs and Transformers
+ - happy-path usage Jupyter notebook example for TrialMetrics class
+ - pytorch_hyperlight.utils.jupyter_nb_utils module containing the hepler functions for running jupyter notebooks (especially notebook examples)
 
 ### Changed
  - "face_image_classification_gender_vit_vs_efficientnet.ipynb" Jupyter notebook is renamed to "face_image_classification_gender_vision_transformer.ipynb"
+ - "face_image_classification_gender_vision_transformer.ipynb" now imports create_datasets and create_dataloaders from pytorch_hyperlight.datasets.kaggle.utkfaces
+ - MLDev python packages version changes:
+   - jupytext==1.10.1
+ - image_utils.show_image_tensors now uses create_subplots from utils_subplot
+ - pytorch_hyperlight.metrics.TrialMetrics.plot method (and show_report method) now uses the newly added create_subplots function from pytorch_hyperlight.utils.plot_utils
+ - examples/_run_all_examples.ipynb notebook and test_notebook_examples testcase a) are refactored to use the functions from jupyter_nb_utils module b) use "_notebook_workspace" as a working folder for jupyter notebooks
+ - all examples are placed into separate folders by categories
+
 
 ### Deprecated
 

@@ -13,39 +13,20 @@
 # limitations under the License.
 
 
-import papermill as pm
 from pathlib import Path
-import tempfile
 import pytest
-
+from pytorch_hyperlight.utils.jupyter_nb_utils import run_notebook, get_notebook_list
 
 EXAMPLES_FOLDER = Path(__file__).parents[2] / "products" / "examples"
-
-
-def get_notebook_list():
-    glob_iter = EXAMPLES_FOLDER.glob("*.ipynb")
-    notebook_files = [x for x in glob_iter if x.is_file()]
-    notebook_files = [
-        file_name for file_name in notebook_files if not file_name.name.startswith("_")
-    ]
-    notebook_files = sorted(notebook_files)
-    return notebook_files
+NOTEBOOK_WORKING_DIR = EXAMPLES_FOLDER / "_notebook_workspace"
 
 
 class TestExampleNotebooks:
-    @staticmethod
-    def run_notebook(notebook_filename, fast_dev_run=False, out_file=None):
-        with tempfile.TemporaryDirectory() as tmp_dir_name:
-            assert len(tmp_dir_name) > 1
-            if out_file is None:
-                out_file = Path(tmp_dir_name) / notebook_filename.name
-            pm.execute_notebook(
-                notebook_filename,
-                out_file,
-                {"FAST_DEV_RUN": fast_dev_run},
-            )
-
-    @pytest.mark.parametrize("file_name", get_notebook_list(), ids=lambda x: x.name)
+    @pytest.mark.parametrize(
+        "file_name",
+        get_notebook_list(EXAMPLES_FOLDER),
+        ids=lambda p: str(p.relative_to(p.parent.parent).with_suffix(''))
+    )
     @pytest.mark.forked
     def test_run_examples(self, file_name):
-        self.run_notebook(file_name, fast_dev_run=True)
+        run_notebook(file_name, NOTEBOOK_WORKING_DIR, fast_dev_run=True)

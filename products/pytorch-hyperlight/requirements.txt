@@ -14,3 +14,4 @@ validators # == 0.18.2
 boto3 # == 1.16.50
 torch # == 1.7.1
 torchvision # == 0.8.2
+kaggle # == 1.5.10

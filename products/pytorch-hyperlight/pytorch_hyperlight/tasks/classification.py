@@ -17,7 +17,8 @@ from pytorch_lightning import metrics
 import torch
 from abc import abstractmethod
 from transformers import AdamW, get_linear_schedule_with_warmup
-import torch.nn as nn
+from torch import nn, optim
+import torch.nn.functional as F
 
 
 class LitMetricsCalc(torch.nn.Module):
@@ -147,3 +148,74 @@ class ClassificationTaskAdamWWarmup(AClassificationTask):
         return [optimizer], [
             {"scheduler": scheduler, "interval": "step", "frequency": 1}
         ]
+
+
+class FCClassifier(nn.Module):
+    def __init__(self, n_features, n_classes, dropout):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        self.classifier0 = nn.Linear(n_features, n_features)
+        self.classifier1 = nn.Linear(n_features, n_classes)
+        #
+        self.classifier0.weight.data.normal_(mean=0.0, std=0.02)
+        self.classifier0.bias.data.zero_()
+        self.classifier1.weight.data.normal_(mean=0.0, std=0.02)
+        self.classifier1.bias.data.zero_()
+
+    def forward(self, pooled_output):
+
+        pooled_output = self.classifier0(pooled_output)
+        pooled_output = F.relu(pooled_output)
+        pooled_output = self.dropout(pooled_output)
+        logits = self.classifier1(pooled_output)
+        return logits
+
+
+class AAutoClsHeadClassificationTaskAdamStepLR(AClassificationTask):
+    def __init__(self, hparams, model):
+        criterion = nn.CrossEntropyLoss()
+        classifier_module_name = self._get_classifier_module_name()
+        old_classifier = getattr(model, classifier_module_name)
+        new_classifier = self._build_classifier(hparams, old_classifier.in_features)
+        setattr(model, classifier_module_name, new_classifier)
+        super().__init__(hparams, model, criterion)
+
+    @abstractmethod
+    def _get_classifier_module_name(self):
+        pass
+
+    def configure_optimizers(self):
+        classifier_prefix = self._get_classifier_module_name() + "."
+
+        classifier_param_list = [
+            param
+            for name, param in self.model.named_parameters()
+            if name.startswith(classifier_prefix)
+        ]
+        assert len(classifier_param_list) > 0
+
+        rest_param_list = [
+            param
+            for name, param in self.model.named_parameters()
+            if not name.startswith(classifier_prefix)
+        ]
+
+        optimizer = optim.Adam(
+            [
+                {"params": classifier_param_list, "lr": self.hparams.classifier_lr},
+                {"params": rest_param_list, "lr": self.hparams.rest_lr},
+            ]
+        )
+        scheduler = optim.lr_scheduler.StepLR(
+            optimizer,
+            step_size=self.hparams.step_lr_step_size,
+            gamma=self.hparams.step_lr_gamma,
+        )
+        return [optimizer], [scheduler]
+
+    def _build_classifier(self, hparams, n_features):
+        n_classes = hparams["n_classes"]
+        fc_dropout = hparams["classifier_dropout"]
+        fc_dropout = hparams["classifier_dropout"]
+        fc = FCClassifier(n_features, n_classes, fc_dropout)
+        return fc

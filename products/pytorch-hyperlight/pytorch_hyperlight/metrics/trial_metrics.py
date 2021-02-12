@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import pandas as pd
-import math
-import matplotlib.pyplot as plt
 import itertools
 from IPython.display import display
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
+from pytorch_hyperlight.utils.plot_utils import create_subplots
 
 TRAIN_SUFFIX = "train"
 VAL_SUFFIX = "val"
@@ -129,22 +128,7 @@ class TrialMetrics:
 
     series_last = property(get_series_last)
 
-    @staticmethod
-    def create_subplots(n_graphs, figsize=None, max_cols=2):
-        SUBPLOT_WIDTH = 20
-        SUBPLOT_HEIGHT = 12
-        MAX_COLS = max_cols
-        n_cols = min(n_graphs, MAX_COLS)
-        n_rows = math.ceil(n_graphs / n_cols)
-        if figsize is None:
-            figsize = (SUBPLOT_WIDTH, SUBPLOT_HEIGHT * n_rows / n_cols)
-        fig = plt.figure(figsize=figsize)
-        ax_list = [None] * n_graphs
-        for i_graph in range(n_graphs):
-            ax_list[i_graph] = fig.add_subplot(n_rows, n_cols, i_graph + 1)
-        return fig, ax_list
-
-    def plot(self, **kwargs):
+    def plot(self, figsize=None, **kwargs):
         cols2drop_list = list(
             set(self.ALL_INDEX_COLUMN_LIST) - set(self.PLOT_INDEX_COLUMN_LIST)
         )
@@ -162,8 +146,9 @@ class TrialMetrics:
 
         metric_name_list = list(set(df.columns.get_level_values(0)))
         n_metrics = len(metric_name_list)
-
-        fig, ax_list = self.create_subplots(n_metrics, **kwargs)
+        if figsize is None:
+            figsize = (20, 12)
+        fig, ax_list = create_subplots(n_metrics, figsize=figsize, **kwargs)
 
         for i_metric, ax in enumerate(ax_list):
             metric_name = metric_name_list[i_metric]

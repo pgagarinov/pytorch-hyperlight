@@ -22,6 +22,8 @@ from pytorch_hyperlight.utils.request_utils import (
 import io
 from torchvision.utils import save_image
 import mimetypes
+from pytorch_hyperlight.utils.plot_utils import create_subplots
+import torch
 
 
 def _calc_scale_factor(image_size, orig_image_size, fn_opt=max):
@@ -73,23 +75,28 @@ def load_image_as_resized_tensor(
 
 
 def show_image_tensors(
-    image_tensor_list,
-    title_list=None,
+    image_tensor_list, title_list=None, max_cols=None, figsize=None, cmap="viridis"
 ):
-    if not isinstance(image_tensor_list, list):
+    DEFAULT_FIG_SIZE = (10, 10)
+    if figsize is None:
+        figsize = DEFAULT_FIG_SIZE
+
+    if isinstance(image_tensor_list, torch.Tensor):
         image_tensor_list = [image_tensor_list]
     n_images = len(image_tensor_list)
-    plt.figure(figsize=(10, 5 * n_images))
+    _, ax_list = create_subplots(n_images, max_cols=max_cols, figsize=figsize)
+
     for i_image in range(0, n_images):
+        ax = ax_list[i_image]
         image_tensor = image_tensor_list[i_image]
-        plt.subplot(n_images, 1, i_image + 1)
-        image_tensor = image_tensor.squeeze()
-        image_tensor = image_tensor.permute(1, 2, 0)
-        plt.imshow(image_tensor)
-        plt.axis("off")
+        if image_tensor.ndim == 4:
+            image_tensor = image_tensor.squeeze(0)
+        image_tensor = image_tensor.permute(1, 2, 0).cpu()
+        ax.imshow(image_tensor, cmap=cmap)
+        ax.axis("off")
         if title_list is not None:
             title = title_list[i_image]
-            plt.title(title)
+            ax.set_title(title)
     plt.show()
 
 
