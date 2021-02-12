@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [0.2.9] - 2021-02-12
+
+### Added
  - ViT attention analysis, ViT positional embedding analysis and references are added to "face_image_classification_gender_vision_transformer.ipynb" Jupyter notebook
  - The new PTH dependencies:
    - kaggle==1.5.10
