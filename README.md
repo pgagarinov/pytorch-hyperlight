@@ -528,13 +528,13 @@ runner.get_metrics()['epoch_x_stage_run_metric'].df
 # Examples
 ## Jupyter notebooks
 ### Image classification
-1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist.ipynb)
-2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/boring_mnist_model_comparison.ipynb)
-3. [Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/face_image_classification_gender_vision_transformer.ipynb)
+1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist.ipynb)
+2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist_model_comparison.ipynb)
+3. [Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_vision_transformer.ipynb)
 ### Semantic segmentation
-1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation_model_comparison.ipynb)
+1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation/semantic_segmentation_model_comparison.ipynb)
 
 ### Neural style transfer
-1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/plain_simple_nst.ipynb)
-2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/multi_style_nst.ipynb)
+1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/plain_simple_nst.ipynb)
+2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/multi_style_nst.ipynb)
 
