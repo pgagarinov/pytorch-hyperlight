@@ -23,12 +23,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
  - random_index_split function in utils.random_utils module. The function helps with splitting the monolithic datasets into train, val and test parts
  - Two new jupyter notebook examples of comparing Hybrid ViT (R50 + ViT) and classical ViT on both CIFAR100 and UTKFaces datasets 
 
-### Changed
-
-### Deprecated
-
-### Removed
-
 ### Fixed
  - Added missing dependencies for PyTorch-Hyperlight
     - albumentations # ==0.5.2
@@ -37,8 +31,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
     - numpy # ==1.20.0
     - pillow # ==7.2.0
  - "visualize_attention_map.ipynb" Jupyter notebook from external ViT-pytorch github repo (used in some of the Jupyter notebook examples) is collected and run along with other PyTorch-Hyperlight examples when "pytest" command is issued
-
-
 
 ## [0.2.9] - 2021-02-12
 
