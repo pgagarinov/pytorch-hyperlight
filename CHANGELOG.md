@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
- - More explanatory comments for Hybrid ViT jupyter notebook examples
+
 ### Changed
 
 ### Deprecated
@@ -15,7 +15,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 ### Fixed
+
+
+## [0.2.11] - 2021-02-13
+
+### Added
+ - More explanatory comments for Hybrid ViT jupyter notebook examples
+
+### Fixed
  - Hybrid ViT jupyter notebook examples print the absolute paths of best model checkpoints
+ - pytorch_hyperlight.datasets module's folder and its subfolders do not contain __init__.py file
 
 ## [0.2.10] - 2021-02-13
 
