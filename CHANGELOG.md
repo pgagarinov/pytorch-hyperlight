@@ -16,6 +16,30 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+## [0.2.10] - 2021-02-13
+
+### Added
+ - CIFARDataLoadersBuilder for cifar100 and cifar10 datasets. The builder shares a lot of source code with UTKFacesDataLoadersBuilder
+ - random_index_split function in utils.random_utils module. The function helps with splitting the monolithic datasets into train, val and test parts
+ - Two new jupyter notebook examples of comparing Hybrid ViT (R50 + ViT) and classical ViT on both CIFAR100 and UTKFaces datasets 
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+ - Added missing dependencies for PyTorch-Hyperlight
+    - albumentations # ==0.5.2
+    - papermill # ==2.3.1
+    - tqdm # ==4.55.1
+    - numpy # ==1.20.0
+    - pillow # ==7.2.0
+
+
+
+
 ## [0.2.9] - 2021-02-12
 
 ### Added

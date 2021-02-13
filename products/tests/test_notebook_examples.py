@@ -25,7 +25,7 @@ class TestExampleNotebooks:
     @pytest.mark.parametrize(
         "file_name",
         get_notebook_list(EXAMPLES_FOLDER),
-        ids=lambda p: str(p.relative_to(p.parent.parent).with_suffix(''))
+        ids=lambda p: str(p.relative_to(p.parent.parent).with_suffix("")),
     )
     @pytest.mark.forked
     def test_run_examples(self, file_name):

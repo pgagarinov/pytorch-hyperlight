@@ -1,6 +1,18 @@
-# %%
+# Copyright Peter Gagarinov.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import re
-from functools import partial
 from pathlib import Path
 
 import albumentations as albu
@@ -9,7 +21,12 @@ import pytorch_lightning as pl
 from albumentations.pytorch import ToTensor
 from kaggle.api.kaggle_api_extended import KaggleApi
 from PIL import Image
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
+from pytorch_hyperlight.datasets.base.dataloader_builders import (
+    AImageDataLoadersBuilder,
+)
+from pytorch_hyperlight.utils.random_utils import random_index_split
+from functools import partial
 
 
 class UTKFaces(Dataset):
@@ -111,40 +128,35 @@ def compose(transforms_to_compose):
     return result
 
 
-class UTKFacesDataLoadersBuilder:
+class UTKFacesDataLoadersBuilder(AImageDataLoadersBuilder):
     KAGGLE_DATASET_NAME = "jangedoo/utkface-new"
     DATASET_ROOT_SUBFOLDER = "kaggle"
-    DEFAULT_DATASET_ROOT_PATH = Path.cwd() / "datasets"
+    DEFAULT_DATASET_ROOT_PATH = (
+        Path.cwd() / AImageDataLoadersBuilder.DEFAULT_DATASET_SUBFOLDER
+    )
     DEFAULT_SEED = 16
-    IMAGE_SIZE = 200
+    DEFAULT_IMAGE_SIZE = 200
+    DEFAULT_LABEL_FIELD = "gender"
 
-    def __init__(self, seed=None, root_path=None):
-        if root_path is None:
-            root_path = UTKFacesDataLoadersBuilder.DEFAULT_DATASET_ROOT_PATH
-        if seed is None:
-            seed = UTKFacesDataLoadersBuilder.DEFAULT_SEED
-        self.__seed = seed
-        self.__root_path = root_path
-
-    def build(self):
-        f_create_dataloaders = partial(
-            UTKFacesDataLoadersBuilder.create_dataloaders,
-            seed=self.__seed,
-            root_path=self.__root_path,
-        )
-        f_create_datasets = partial(
-            UTKFacesDataLoadersBuilder.create_datasets,
-            seed=self.__seed,
-            root_path=self.__root_path,
-        )
-        return f_create_dataloaders, f_create_datasets
+    def __init__(self, label_field=None, **kwargs):
+        if label_field is None:
+            label_field = self.DEFAULT_LABEL_FIELD
+        self.__label_field = label_field
+        super().__init__(**kwargs)
 
     @staticmethod
     def create_datasets(
-        val_size=0.2, test_size=0.05, root_path=None, label_field="gender", seed=None
+        val_size=0.2,
+        test_size=0.05,
+        root_path=None,
+        label_field=None,
+        seed=None,
+        image_size=None,
     ):
         assert root_path is not None
         assert seed is not None
+        assert image_size is not None
+        assert label_field is not None
 
         api = KaggleApi()
         api.authenticate()
@@ -176,8 +188,6 @@ class UTKFacesDataLoadersBuilder:
 
         label_vec = np.array(label_list_dict[label_field])
 
-        image_size = UTKFacesDataLoadersBuilder.IMAGE_SIZE
-
         TRANSFORM_DICT = {
             "train_augmented": compose(
                 [pre_transforms(image_size), hard_transforms(), post_transforms()]
@@ -194,27 +204,17 @@ class UTKFacesDataLoadersBuilder:
 
         n_classes = len(np.unique(label_vec))
 
-        ind_all_vec = np.arange(len(label_vec))
-        np.random.shuffle(ind_all_vec)
+        n_full_train_samples = len(label_vec)
 
-        n_full_train_samples = len(ind_all_vec)
-        n_val_samples = int(n_full_train_samples * val_size)
-        n_test_samples = int(n_full_train_samples * test_size)
-        ind_train_vec, ind_val_vec, ind_test_vec = np.split(
-            ind_all_vec,
-            np.cumsum(
-                [
-                    n_full_train_samples - n_val_samples - n_test_samples,
-                    n_val_samples,
-                ]
-            ),
+        ind_train_vec, ind_val_vec, ind_test_vec = random_index_split(
+            n_full_train_samples, val_size, test_size
         )
 
         train_full_augmented_dataset = UTKFaces(
             all_file_name_vec, label_vec, transform=TRANSFORM_DICT["train_augmented"]
         )
 
-        show_train_full_augmented_dataset = UTKFaces(
+        train_show_full_augmented_dataset = UTKFaces(
             all_file_name_vec, label_vec, transform=TRANSFORM_DICT["show_augmented"]
         )
 
@@ -251,29 +251,17 @@ class UTKFacesDataLoadersBuilder:
             "train_augmented_dataset": train_augmented_dataset,
             "val_dataset": val_dataset,
             "test_dataset": test_dataset,
-            "show_train_full_augmented_dataset": show_train_full_augmented_dataset,
+            "train_show_full_augmented_dataset": train_show_full_augmented_dataset,
             "test_inference_dataset": test_inference_dataset,
             "test_show_dataset": test_show_dataset,
             "n_classes": n_classes,
         }
 
-    @staticmethod
-    def create_dataloaders(batch_size, n_workers=4, **kwargs):
-        #
-        SAMPLER = None
-        #
-        dataset_dict = UTKFacesDataLoadersBuilder.create_datasets(**kwargs)
-        result_dict = dataset_dict.copy()
-        #
-        for dataset_name, dataset in dataset_dict.items():
-            if isinstance(dataset, Dataset):
-                loader_name = dataset_name.replace("dataset", "loader")
-                result_dict[loader_name] = DataLoader(
-                    dataset_dict[dataset_name],
-                    batch_size=batch_size,
-                    shuffle=("train" in dataset_name),
-                    sampler=SAMPLER,
-                    num_workers=n_workers,
-                    pin_memory=True,
-                )
-        return result_dict
+    def build(self):
+        f_create_dataloaders, f_create_datasets = super().build()
+
+        f_create_dataloaders = partial(
+            f_create_dataloaders, label_field=self.__label_field
+        )
+        f_create_datasets = partial(f_create_datasets, label_field=self.__label_field)
+        return f_create_dataloaders, f_create_datasets

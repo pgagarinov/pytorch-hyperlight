@@ -18,3 +18,5 @@ dist
 **.rar
 **.bak
 **.zip
+_datasets
+ViT-pytorch
