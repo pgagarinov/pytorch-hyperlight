@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
-
+ - More explanatory comments for Hybrid ViT jupyter notebook examples
 ### Changed
 
 ### Deprecated
@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 ### Fixed
+ - Hybrid ViT jupyter notebook examples print the absolute paths of best model checkpoints
 
 ## [0.2.10] - 2021-02-13
 
