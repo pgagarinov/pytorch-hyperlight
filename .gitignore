@@ -20,3 +20,4 @@ dist
 **.zip
 _datasets
 ViT-pytorch
+_notebook_workspace

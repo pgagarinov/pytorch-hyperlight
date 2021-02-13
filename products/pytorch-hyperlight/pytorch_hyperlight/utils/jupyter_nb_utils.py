@@ -23,9 +23,12 @@ DEFAULT_WORKSPACE_SUBDIR_NAME = "_notebook_workspace"
 
 
 def get_notebook_list(root_dir):
-    notebook_files = set(Path(root_dir).glob("**/[!_]*.ipynb")) - set(
-        Path(root_dir).glob("**/.ipynb_checkpoints/**/*.ipynb")
+    notebook_files = (
+        set(Path(root_dir).glob("**/[!_]*.ipynb"))
+        - set(Path(root_dir).glob("**/.ipynb_checkpoints/**/*.ipynb"))
+        - set(Path(root_dir).glob("**/ViT-pytorch/**/*.ipynb"))
     )
+
     return notebook_files
 
 

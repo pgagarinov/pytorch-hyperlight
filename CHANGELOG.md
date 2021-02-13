@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
     - tqdm # ==4.55.1
     - numpy # ==1.20.0
     - pillow # ==7.2.0
-
+ - "visualize_attention_map.ipynb" Jupyter notebook from external ViT-pytorch github repo (used in some of the Jupyter notebook examples) is collected and run along with other PyTorch-Hyperlight examples when "pytest" command is issued
 
 
 
