@@ -531,6 +531,8 @@ runner.get_metrics()['epoch_x_stage_run_metric'].df
 1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist.ipynb)
 2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist_model_comparison.ipynb)
 3. [Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_vision_transformer.ipynb)
+4. [Hybrid Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_hybrid_vision_transformer.ipynb)
+5. [Hybrid Vision Transformer (ViT) for CIFAR100 image classification](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/cifar100_image_classification_hybrid_vision_transformer.ipynb)
 ### Semantic segmentation
 1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation/semantic_segmentation_model_comparison.ipynb)
 
