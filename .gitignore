@@ -21,3 +21,4 @@ dist
 _datasets
 ViT-pytorch
 _notebook_workspace
+node_modules

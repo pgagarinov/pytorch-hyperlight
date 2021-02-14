@@ -10,7 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
  - More explanatory comments for Hybrid ViT jupyter notebook examples, the notebook is re-run with higher number of epochs
 
 ### Changed
-
+ - The following conda packages were replaced with pip versions for MLDevEnv
+   - jupytext 
+   - jupyterlab-git
 ### Deprecated
 
 ### Removed

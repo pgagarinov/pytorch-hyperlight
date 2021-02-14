@@ -40,10 +40,8 @@ dependencies:
   - jupyter==1.0.0
   - notebook==6.2.0
   - jupyterlab==3.0.6
-  - jupyterlab-lsp==3.3.0
-  - jupyterlab-git==0.30.0b1
+  - jupyterlab-lsp==3.3.1
   - jupyterlab_code_formatter==1.4.3
-  - jupytext==1.10.1
   - ipympl==0.6.3
   - conda==4.9.2
   - pytorch-lightning==1.1.6
@@ -52,6 +50,8 @@ dependencies:
   - pillow==7.2.0
   - boto3==1.16.63
   - pip:
+    - jupytext==1.10.1
+    - jupyterlab-git==0.30.0b1
     - gym==0.18.0
     - pytorch-lightning-bolts==0.3.0
     - timm==0.3.4
