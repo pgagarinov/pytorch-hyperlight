@@ -125,13 +125,6 @@ class CIFARDataLoadersBuilder(AImageDataLoadersBuilder):
             transform=TRANSFORMS_DICT["test"],
         )
 
-        train_full_dataset = dataset_class(
-            root=root_path,
-            train=True,
-            download=True,
-            transform=TRANSFORMS_DICT["test"],
-        )
-
         ind_train_vec, ind_val_vec, _ = random_index_split(
             len(train_full_augmented_dataset), val_size, 0
         )

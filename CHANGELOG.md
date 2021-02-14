@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
+ - More explanatory comments for Hybrid ViT jupyter notebook examples, the notebook is re-run with higher number of epochs
 
 ### Changed
 
@@ -15,7 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 ### Fixed
-
+ - test_dataset is created twice in pytorch_hyperlight.datasets.cifar.py
 
 ## [0.2.11] - 2021-02-13
 
