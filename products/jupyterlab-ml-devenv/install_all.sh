@@ -24,9 +24,9 @@ printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel..
 conda install -y -c conda-forge conda
 printf "${MSGCOLOR}Installing conda package via conda from conda-forge channel: done${NOCOLOR}\n\n"
 
-printf "${MSGCOLOR}Installing jupyter_mldevenv package...${NOCOLOR}\n"
+printf "${MSGCOLOR}Installing MLDevEnv management tool...${NOCOLOR}\n"
 pip install -e .
-printf "${MSGCOLOR}Installing jupyter_mldevenv package: done${NOCOLOR}\n\n"
+printf "${MSGCOLOR}Installing MLDevEnv management tool: done${NOCOLOR}\n\n"
 
 printf "${MSGCOLOR}Installing all dependencies for Jupyter ML development environment...${NOCOLOR}\n"
 mlenvtool conda_env_cur_update all

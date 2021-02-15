@@ -7,7 +7,7 @@ dependencies:
   - gensim==3.8.3
   - scikit-learn==0.24.1
   - pandas==1.2.1
-  - numpy==1.20.0
+  - numpy==1.20.1
   - pip==21.0.1
   - setuptools==49.6.0
   - python=3.8.5
@@ -31,12 +31,12 @@ dependencies:
   - lightgbm==3.1.1
   - python-language-server==0.36.2
   - tensorboard==2.4.1 #2.3 is not compatible with jupyterlab-tensorboard extension
-  - papermill==2.3.1
+  - papermill==2.3.2
   - termcolor==1.1.0
   - scikit-image==0.18.1
   - hyperopt==0.2.5
   - toolz==0.11.1
-  - joblib==1.0.0
+  - joblib==1.0.1
   - jupyter==1.0.0
   - notebook==6.2.0
   - jupyterlab==3.0.6
@@ -46,8 +46,7 @@ dependencies:
   - conda==4.9.2
   - pytorch-lightning==1.1.6
   - requests==2.25.1
-  # - pillow==8.1.0 # problematic, gym requires pillow<=7.2
-  - pillow==7.2.0
+  - pillow==7.2.0   # - pillow==8.1.0 # problematic, gym requires pillow<=7.2
   - boto3==1.16.63
   - pip:
     - jupytext==1.10.1
@@ -56,7 +55,7 @@ dependencies:
     - pytorch-lightning-bolts==0.3.0
     - timm==0.3.4
     - pyyaml==5.3.1
-    - spacy==2.3.5
+    - spacy==2.3.5  # ray[serve] 1.2.0 depends on pydantic<1.7; spacy 3.0.3 depends on pydantic<1.8.0 and >=1.7.1
     - fasttext==0.9.2
     - mlflow==1.13.1
     - cufflinks==0.17.3
@@ -69,14 +68,14 @@ dependencies:
   # - jupyter-nbextensions-configurator==0.4.1
     - gdown==3.12.2
   # - datasets==1.2.0 # requires tqdm <4.50 which is strange
-    - transformers==4.2.2
-    - tokenizers==0.9.4
+    - transformers==4.3.2
+    - tokenizers==0.10.1
     - youtokentome==1.0.6
     - bpemb==0.3.2
     - torchsummary==1.5.1
-    - ray[tune]==1.1.0
-    - ray[serve]==1.1.0
-    - wandb==0.10.17
+    - ray[tune]==1.2.0
+    - ray[serve]==1.2.0
+    - wandb==0.10.19
     - efficientnet-pytorch==0.7.0
     - networkx==2.5
     - pymorphy2==0.9.1

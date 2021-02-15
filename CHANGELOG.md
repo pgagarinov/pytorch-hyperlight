@@ -10,9 +10,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
  - More explanatory comments for Hybrid ViT jupyter notebook examples, the notebook is re-run with higher number of epochs
 
 ### Changed
- - The following conda packages were replaced with pip versions for MLDevEnv
-   - jupytext 
-   - jupyterlab-git
+ - Changes to MLDevEnv packages:
+     - The following conda packages were replaced with pip versions for MLDevEnv
+       - jupytext 
+       - jupyterlab-git
+     - The following packages were updated:
+       - numpy==1.20.1
+       - papermill==2.3.2
+       - joblib==1.0.1
+       - pillow==7.2.0
+       - spacy==2.3.5
+       - transformers==4.3.2
+       - tokenizers==0.10.1
+       - ray[tune]==1.2.0
+       - ray[serve]==1.2.0
+       - wandb==0.10.19
+     
 ### Deprecated
 
 ### Removed
