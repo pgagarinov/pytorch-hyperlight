@@ -19,7 +19,7 @@
 
 
 ## PyTorch Hyperlight key principles
- * *No wheel reinvention* Parts of PyTorch Lightning or Ray Tune that already provide simple enough interfaces are used as is. PyTorch Hyperlight just makes use of those frameworks easier by minimizing an amount of boilerplate code.
+ * *No wheel reinvention*. Parts of PyTorch Lightning or Ray Tune that already provide simple enough interfaces are used as is. PyTorch Hyperlight just makes use of those frameworks easier by minimizing an amount of boilerplate code.
  * *Opinionated approach* that doesn't try to be flexible for every possible task. Instead PyTorch Hyperlight tries to address fewer usecase better by providing pre-configured integrations and functionaly out of the box.
  * *Minimalistic user-facing API* allows to do research by using a single `Runner` class that is similar to PyTorch Lightning's `Trainer` but is a higher-level abstraction.
  * *Expect both model and data as definitions, not as data*. All this is done to minimize problems with Ray Tune which runs trails in separate processes. For
