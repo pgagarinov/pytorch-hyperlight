@@ -7,9 +7,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
- - More explanatory comments for Hybrid ViT jupyter notebook examples, the notebook is re-run with higher number of epochs
 
 ### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [0.2.12] - 2021-02-17
+
+### Added
+ - A new Jupyter notebook example for BERT finetuning on a SST2 subset
+ - Reusable AAutoClsHeadClassificationTaskWDAdamWStepLR and  AAutoClsHeadClassificationTaskWDAdamWWarmup classes for shaping classification heads for a desired number of classes and using AdamW optimizer in a combination with StepLR scheduler from PyTorch LinearWarmup scheduler from HuggingFrace transformers library.
+ - A new overridable method `_forward_batch` in `AClassificationTask` class for extracting a model inputs from a batch and running a forward pass for the module (by default it just uses batch[0] as a target)
+ - A new overridable method `_get_target_from_batch` responsible for extracting the target from the batch (by default it just uses batch[1] as a target)
+ - More explanatory comments for Hybrid ViT jupyter notebook examples, the notebook is re-run with higher number of epochs
+ - `init_dl.sh` is renamed to `run_all.sh` and all child scripts for running Jupyter notebook, MLFlow and TensorFlow now accept one more command line paramter defining a working directory
+ 
+### Changed
+ - All vision transformer-based Jupyter notebook examples are switched to AAutoClsHeadClassificationTaskWDAdamWStepLR class
  - Changes to MLDevEnv packages:
      - The following conda packages were replaced with pip versions for MLDevEnv
        - jupytext 
@@ -26,10 +44,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
        - ray[serve]==1.2.0
        - wandb==0.10.19
      
-### Deprecated
-
-### Removed
-
 ### Fixed
  - test_dataset is created twice in pytorch_hyperlight.datasets.cifar.py
 

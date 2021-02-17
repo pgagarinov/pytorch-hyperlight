@@ -84,15 +84,19 @@ class AClassificationTask(pl.LightningModule):
     def configure_optimizers(self):
         pass
 
-    def forward(self, inputs):
+    def forward(self, *args, **kwargs):
 
-        logits = self.model(inputs)
+        logits = self.model(*args, **kwargs)
 
         return logits
 
-    def forward_batch(self, batch):
+    def _forward_batch(self, batch):
         inputs = batch[0]
         return self(inputs)
+
+    @staticmethod
+    def _get_target_from_batch(batch):
+        return batch[1]
 
     def __calc_loss(self, logits, target, log_label):
         loss = self.criterion(logits, target)
@@ -101,10 +105,11 @@ class AClassificationTask(pl.LightningModule):
 
     # noinspection PyUnusedLocal
     def __stage_step(self, metric_calc, batch, batch_idx, stage):
-        logits = self.forward_batch(batch)
-        mval_dict = metric_calc.step(logits, batch[1])
+        logits = self._forward_batch(batch)
+        target = self._get_target_from_batch(batch)
+        mval_dict = metric_calc.step(logits, target)
         self.log_dict(mval_dict, prog_bar=True, on_step=True, on_epoch=True)
-        loss = self.__calc_loss(logits, batch[1], stage)
+        loss = self.__calc_loss(logits, target, stage)
         return loss
 
     def training_step(self, batch, batch_idx):
@@ -171,9 +176,8 @@ class FCClassifier(nn.Module):
         return logits
 
 
-class AAutoClsHeadClassificationTaskAdamStepLR(AClassificationTask):
-    def __init__(self, hparams, model):
-        criterion = nn.CrossEntropyLoss()
+class AAutoClsHeadClassificationWeightDecayTask(AClassificationTask):
+    def __init__(self, hparams, model, criterion):
         classifier_module_name = self._get_classifier_module_name()
         old_classifier = getattr(model, classifier_module_name)
         new_classifier = self._build_classifier(hparams, old_classifier.in_features)
@@ -184,7 +188,13 @@ class AAutoClsHeadClassificationTaskAdamStepLR(AClassificationTask):
     def _get_classifier_module_name(self):
         pass
 
-    def configure_optimizers(self):
+    def _build_classifier(self, hparams, n_features):
+        n_classes = hparams["n_classes"]
+        fc_dropout = hparams["classifier_dropout"]
+        fc = FCClassifier(n_features, n_classes, fc_dropout)
+        return fc
+
+    def get_param_groups(self):
         classifier_prefix = self._get_classifier_module_name() + "."
 
         classifier_param_list = [
@@ -194,18 +204,59 @@ class AAutoClsHeadClassificationTaskAdamStepLR(AClassificationTask):
         ]
         assert len(classifier_param_list) > 0
 
-        rest_param_list = [
+        no_weight_decay_param_names = self.hparams["no_weight_decay_param_names"]
+
+        rest_no_decay_param_list = [
             param
             for name, param in self.model.named_parameters()
             if not name.startswith(classifier_prefix)
+            and any(nd in name for nd in no_weight_decay_param_names)
         ]
 
-        optimizer = optim.Adam(
-            [
-                {"params": classifier_param_list, "lr": self.hparams.classifier_lr},
-                {"params": rest_param_list, "lr": self.hparams.rest_lr},
-            ]
-        )
+        rest_decay_param_list = [
+            param
+            for name, param in self.model.named_parameters()
+            if not name.startswith(classifier_prefix)
+            and (not any(nd in name for nd in no_weight_decay_param_names))
+        ]
+
+        return {
+            "classifier": classifier_param_list,
+            "rest_no_decay": rest_no_decay_param_list,
+            "rest_decay": rest_decay_param_list,
+        }
+
+    def get_optimizer_params(self):
+        param_groups_dict = self.get_param_groups()
+
+        opt_arg_list = []
+
+        for param_group_name, param_list in param_groups_dict.items():
+            param_group_prefix = param_group_name.split("_")[0]
+            lr_param_name = f"{param_group_prefix}_lr"
+            if param_group_name == "rest_decay":
+                weight_decay = self.hparams["weight_decay"]
+            else:
+                weight_decay = 0
+
+            opt_arg_list.append(
+                {
+                    "params": param_list,
+                    "lr": self.hparams[lr_param_name],
+                    "weight_decay": weight_decay,
+                }
+            )
+
+        return opt_arg_list
+
+
+class AAutoClsHeadClassificationTaskWDAdamWStepLR(
+    AAutoClsHeadClassificationWeightDecayTask
+):
+    def configure_optimizers(self):
+        opt_arg_list = self.get_optimizer_params()
+
+        optimizer = optim.AdamW(opt_arg_list)
         scheduler = optim.lr_scheduler.StepLR(
             optimizer,
             step_size=self.hparams.step_lr_step_size,
@@ -213,9 +264,22 @@ class AAutoClsHeadClassificationTaskAdamStepLR(AClassificationTask):
         )
         return [optimizer], [scheduler]
 
-    def _build_classifier(self, hparams, n_features):
-        n_classes = hparams["n_classes"]
-        fc_dropout = hparams["classifier_dropout"]
-        fc_dropout = hparams["classifier_dropout"]
-        fc = FCClassifier(n_features, n_classes, fc_dropout)
-        return fc
+
+class AAutoClsHeadClassificationTaskWDAdamWWarmup(
+    AAutoClsHeadClassificationWeightDecayTask
+):
+    def configure_optimizers(self):
+        opt_arg_list = self.get_optimizer_params()
+        optimizer = AdamW(
+            opt_arg_list,
+            betas=(0.9, 0.999),
+            eps=1e-8,
+        )
+
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, self.hparams.warmup, self.hparams.n_train_steps
+        )
+
+        return [optimizer], [
+            {"scheduler": scheduler, "interval": "step", "frequency": 1}
+        ]
