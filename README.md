@@ -542,3 +542,5 @@ runner.get_metrics()['epoch_x_stage_run_metric'].df
 1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/plain_simple_nst.ipynb)
 2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/multi_style_nst.ipynb)
 
+### Natural language processing
+1. [BERT finetuning on a subset of SST2](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nlp/bert_sst2_subset_finetuning.ipynb)
