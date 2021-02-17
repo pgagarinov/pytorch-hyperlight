@@ -12,7 +12,7 @@
 | | | | |
 |-|-|-|-|
 | [📜 Natural Language Processing](#natural-language-processing)|[🔍 Image Classification](#image-classification) |[🌀 Semantic Segmentation](#semantic-segmentation) | [:loop: Neural Style Transfer](#neural-style-transfer)|
-|[<img src="https://user-images.githubusercontent.com/4868370/108255335-2de09900-716d-11eb-8c79-70d32de4c99b.png" width="300">](#natural-language-processing)|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="300">](#image-classification) |[<img src="https://user-images.githubusercontent.com/4868370/108256729-e78c3980-716e-11eb-96f0-789b96f0af4b.png" width="300">](#semantic-segmentation) | [<img class="animated-gif" src="https://user-images.githubusercontent.com/4868370/105389270-b6c8eb00-5c28-11eb-9362-dd1c038b18a2.gif" width="300">](#neural-style-transfer)|
+|[<img src="https://user-images.githubusercontent.com/4868370/108255335-2de09900-716d-11eb-8c79-70d32de4c99b.png" width="300">](#natural-language-processing)|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="300">](#image-classification) |[<img src="https://user-images.githubusercontent.com/4868370/108256729-e78c3980-716e-11eb-96f0-789b96f0af4b.png" width="250">](#semantic-segmentation) <sup><sub>Source :- https://cs.stanford.edu/~roozbeh/pascal-context/</sub></sup> | [<img class="animated-gif" src="https://user-images.githubusercontent.com/4868370/105389270-b6c8eb00-5c28-11eb-9362-dd1c038b18a2.gif" width="300">](#neural-style-transfer)|
 
 
 
