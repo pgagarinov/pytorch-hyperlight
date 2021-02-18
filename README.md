@@ -3,10 +3,10 @@
 **The ML micro-framework built on top of [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) to push the boundaries of simplicity even further.**
 
 
-*PyTorch Hyperlight provides* 
-  * a growing set of reusable components for running train-validate-test cycles and hyper-parameter tunning for your models with less amount of repeated source code. Just inherit from one of the base classes provided by PyTorch-Hyperlight, inject your models into the superclass constructor and concentrate on improving your model quality, not on the boilerplace code!*
+PyTorch Hyperlight provides 
+  * *a growing set of reusable components for running train-validate-test cycles and hyper-parameter tunning for your models with less amount of repeated source code. Just inherit from one of the base classes provided by PyTorch-Hyperlight, inject your models into the superclass constructor and concentrate on improving your model quality, not on the boilerplace code!*
   
-  * a set of configuration scripts for setting up a [PyTorch Hyperlight MLDevEnv](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) - the JupyterLab-based machine learning environment for Python formed as a set of well-integrated up-to-date ML packages. See [PyTorch Hyperlight MLDevEnv conda environment yaml file](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/mldevenv_conda_requirements.yml) for the list of packages we support.
+  * *a set of configuration scripts for setting up a [PyTorch Hyperlight MLDevEnv](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) - the JupyterLab-based machine learning environment for Python formed as a set of well-integrated up-to-date ML packages. See [PyTorch Hyperlight MLDevEnv conda environment yaml file](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/mldevenv_conda_requirements.yml) for the full list of ML packages installed within the environment.
  
 ***Start by cloning of the examples below and modifying it for your needs!***
   
