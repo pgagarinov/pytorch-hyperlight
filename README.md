@@ -3,18 +3,31 @@
 **The ML micro-framework built as a thin wrapper around [PyTorch-Lightning](https://pytorchlightning.ai/) and [Ray Tune](https://docs.ray.io/en/master/tune/) to push the boundaries of simplicity even further.**
 
 
- * *Neither the author nor the project does not have any relation to PyTorch-Lightning Team or Ray project.*
- * *PyTorch Hyperlight is not a fork as it does not modify (and there are no such plans) any of PyTorch-Lightning or Ray Tune code and is built on top of the forementioned frameworks.*
- 
+ * *PyTorch Hyperlight is not a fork of PyTorch-Lightning as it does not modify (and there are no such plans) any of PyTorch-Lightning or Ray Tune code and is built on top of these frameworks.*
  
 ## Examples
-
+ 
 | | | | |
 |-|-|-|-|
 | [📜 Natural Language Processing](#natural-language-processing)|[🔍 Image Classification](#image-classification) |[🌀 Semantic Segmentation](#semantic-segmentation) | [:loop: Neural Style Transfer](#neural-style-transfer)|
 |[<img src="https://user-images.githubusercontent.com/4868370/108255335-2de09900-716d-11eb-8c79-70d32de4c99b.png" width="300">](#natural-language-processing)|[<img src="https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png" width="300">](#image-classification) |[<img src="https://user-images.githubusercontent.com/4868370/108256729-e78c3980-716e-11eb-96f0-789b96f0af4b.png" width="300">](#semantic-segmentation)<br> <sup><sub>source: https://cs.stanford.edu/~roozbeh/pascal-context/</sub></sup> | [<img class="animated-gif" src="https://user-images.githubusercontent.com/4868370/105389270-b6c8eb00-5c28-11eb-9362-dd1c038b18a2.gif" width="300">](#neural-style-transfer)|
 
+### Jupyter notebooks
+#### Image classification
+1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist.ipynb)
+2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist_model_comparison.ipynb)
+3. [Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_vision_transformer.ipynb)
+4. [Hybrid Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_hybrid_vision_transformer.ipynb)
+5. [Hybrid Vision Transformer (ViT) for CIFAR100 image classification](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/cifar100_image_classification_hybrid_vision_transformer.ipynb)
+#### Semantic segmentation
+1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation/semantic_segmentation_model_comparison.ipynb)
 
+#### Neural style transfer
+1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/plain_simple_nst.ipynb)
+2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/multi_style_nst.ipynb)
+
+### Natural language processing
+1. [BERT finetuning on a subset of SST2](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nlp/bert_sst2_subset_finetuning.ipynb)
 
 
 
@@ -526,21 +539,3 @@ runner.get_metrics()['run_x_last_metric_df']
 ```python
 runner.get_metrics()['epoch_x_stage_run_metric'].df
 ```
-    
-# Examples
-## Jupyter notebooks
-### Image classification
-1. [Boring MNIST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist.ipynb)
-2. [Boring MNIST model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/boring_mnist_model_comparison.ipynb)
-3. [Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_vision_transformer.ipynb)
-4. [Hybrid Vision Transformer (ViT) for facial image classification based on gender](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/face_image_classification_gender_hybrid_vision_transformer.ipynb)
-5. [Hybrid Vision Transformer (ViT) for CIFAR100 image classification](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/image_classification/cifar100_image_classification_hybrid_vision_transformer.ipynb)
-### Semantic segmentation
-1. [Semantic segmentation model comparison](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/semantic_segmentation/semantic_segmentation_model_comparison.ipynb)
-
-### Neural style transfer
-1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/plain_simple_nst.ipynb)
-2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/multi_style_nst.ipynb)
-
-### Natural language processing
-1. [BERT finetuning on a subset of SST2](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nlp/bert_sst2_subset_finetuning.ipynb)
