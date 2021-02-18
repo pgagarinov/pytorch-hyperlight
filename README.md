@@ -5,7 +5,7 @@
 
  * *PyTorch Hyperlight provides a growing set of reusable components for running train-validate-test cycles and hyper-parameter tunning for your models with less amount of repeated source code. Just inherit from one of the base classes provided by PyTorch-Hyperlight, inject your models into the superclass constructor and concentrate on improving your model quality, not on the boilerplace code!*
  
- * *Start by cloning of the examples below and modifying it for your needs!*
+ * ***Start by cloning of the examples below and modifying it for your needs!***
   
 | | | | |
 |-|-|-|-|
