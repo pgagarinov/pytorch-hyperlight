@@ -36,14 +36,12 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 
 * You are familiar with [PyTorch-Lightning](https://pytorchlightning.ai/), if not - refer to [PyTorch Lightning awesome documentation](https://pytorch-lightning.readthedocs.io/en/stable/).
 
-* Runner
-
 * Metrics that you log from your PyTorch Lightning module should have pre-defined prefixes and suffixes:
      * "val", "train" or "test" ("val_f1_step" for example) as a prefix
      * "epoch" or "step" ("train_f1_epoch" for example) as a suffix
      
 * DataLoaders should be returned by a function as a dictionary. The function should have "batch_size" as a regular parameter and "n_workers" as a key word parameter. They reason PyTorch Hyperlight doesn't rely on LightningDataModule from PyTorch Lightning is LightningDataModule might contains some data that would have to be serialized in the master process and de-serialized in each Ray Tune worker (workers are responsible for running hyper-parameter search trials).
-* WandB API key should be in the plain text file `~/.wandb_api_key`
+* WandB API key is placed in `~/.wandb_api_key` file.
 
 ## Examples
 ### Jupyter notebooks
