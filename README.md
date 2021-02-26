@@ -8,7 +8,7 @@ PyTorch Hyperlight provides
   
   * *a set of configuration scripts for setting up a [PyTorch Hyperlight MLDevEnv](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) - the JupyterLab-based machine learning environment for Python formed as a set of well-integrated up-to-date ML packages. See [PyTorch Hyperlight MLDevEnv conda environment yaml file](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/mldevenv_conda_requirements.yml) for the full list of ML packages installed within the environment.*
  
-***Start by cloning of the examples below and modifying it for your needs!***
+***Start by cloning one of the examples below and modifying it for your needs!***
   
 | | | | |
 |-|-|-|-|
