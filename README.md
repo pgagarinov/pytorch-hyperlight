@@ -60,7 +60,7 @@ As most of opinionated frameworks PyTorch Hyperlight makes few assumptions about
 #### Neural style transfer
 1. [Plain simple NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/plain_simple_nst.ipynb)
 2. [Multi-style NST](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nst/multi_style_nst.ipynb)
-3. [NST Telegram bot](https://github.com/pgagarinov/dls-style-telegram-bot)
+3. [NST Telegram bot](https://github.com/pgagarinov/pytorch-neural-style-telegram-bot)
 
 ### Natural language processing
 1. [BERT finetuning on a subset of SST2](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/examples/nlp/bert_sst2_subset_finetuning.ipynb)
