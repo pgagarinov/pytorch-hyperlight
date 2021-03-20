@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
  - MLDevEnv: README.md now contains a few examples of using mlenvtool directly 
  
 ### Changed
+ - MLDevEnv is moved to https://github.com/pgagarinov/pytorch-ml-devenv
+ as a separate project
 
 ### Deprecated
 
