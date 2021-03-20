@@ -19,7 +19,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
  - face_image_classification_gender_hybrid_vision_transformer.ipynb Jupyter notebook example is correct but the output saved inside the notebook contains a stacktrace from out of memory error.
- - MLDevEnv: pip package versions are now generated correctly
+ - validation metrics are now reported separately from test metrics in
+ progress bar callback
 
 ## [0.2.12] - 2021-02-17
 

@@ -170,7 +170,7 @@ class LoggingProgressBar(ProgressBar):
         return copy.deepcopy(self.__metrics_df_list)
 
     def on_train_epoch_end(self, trainer, pl_module, outputs):
-        STAGE_LIST = ["train", "val"]
+        STAGE_LIST = ["train"]
         super().on_train_epoch_end(trainer, pl_module, outputs)
         if not trainer.running_sanity_check:
             self.__log(STAGE_LIST, trainer)
@@ -190,8 +190,11 @@ class LoggingProgressBar(ProgressBar):
             self.__log(STAGE_LIST, trainer)
 
     def on_validation_end(self, trainer, pl_module):
+        STAGE_LIST = ["val"]
         super(ProgressBarBase, self).on_validation_end(trainer, pl_module)
         self.main_progress_bar.set_postfix(trainer.progress_bar_dict)
+        if not trainer.running_sanity_check:
+            self.__log(STAGE_LIST, trainer)
 
     def on_train_end(self, trainer, pl_module):
         super(ProgressBarBase, self).on_train_end(trainer, pl_module)
