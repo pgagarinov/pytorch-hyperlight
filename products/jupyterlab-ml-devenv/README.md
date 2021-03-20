@@ -21,3 +21,13 @@ conda activate ml-devenv
 ./init_dl.sh ml-devenv
 ```
 Optionally run `./init_dl.sh ml-devenv` to launch the JupyterLab server, TensorBoard server and MLFlow server.
+
+## MLEnvTool usage
+### Examples
+- Replace "==" with ">=" for all packages except for pytorch and
+torchvision, write the result to 'out.yml'
+ `mlenvtool conda_env_yaml_transform versions_eq2ge ./mldevenv_conda_requirements.yml ./out.yml --except_package_list pytorch torchvision`
+
+- Strip versions for all packages except for pytorch and
+torchvision, write the result to 'out.yml'
+ `mlenvtool conda_env_yaml_transform versions_strip ./mldevenv_conda_requirements.yml ./out.yml --except_package_list pytorch torchvision`  

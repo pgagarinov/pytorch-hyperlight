@@ -50,7 +50,7 @@ def parse_dependencies(dep_list):
 
 
 def serialize_dependencies(spec_list):
-    dep_list = proc_tree(spec_list, str)
+    dep_list = proc_tree(spec_list, lambda spec_obj: spec_obj.spec)
     return dep_list
 
 
