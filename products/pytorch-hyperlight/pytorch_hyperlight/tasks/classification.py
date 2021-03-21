@@ -53,7 +53,7 @@ class LitMetricsCalc(torch.nn.Module):
 
         prefix = self.prefix
         for metric in self._metrics_dict.values():
-            metric(probs, target)
+            metric(probs, target.long())
 
         return {
             f"{prefix}_{metric_name}": metric

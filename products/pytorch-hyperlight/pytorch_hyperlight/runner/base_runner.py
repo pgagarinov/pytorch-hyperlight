@@ -52,6 +52,7 @@ class LitModuleBuilder:
         self.__model_class = model_class
 
     def load_from_checkpoint(self, checkpoint_path, **kwargs):
+        assert checkpoint_path, "Expected a non empty checkpoint_path"
         (
             lmodule,
             last_epoch,
@@ -198,9 +199,9 @@ class BaseRunner:
         expected_series_last = pd.Series(
             MetricDictUtils.filter_n_round_epoch_metrics(metrics_dict)
         ).sort_index()
-        assert trial_metrics.series_last.sort_index().equals(
-            expected_series_last
-        ), "Oops, metrics values are inconsistent"
+        is_ok = trial_metrics.series_last.sort_index().equals(
+            expected_series_last)
+        assert is_ok, "Oops, metrics values are inconsistent"
 
     def __run_in_main_process(self, lmodule_builder, config, **kwargs):
         """
@@ -407,7 +408,7 @@ class BaseRunner:
         #
         if is_debug:
             TRAINER_KWARG_DICT = {
-                "max_epochs": 3,
+                "max_epochs": min(3, config['max_epochs']),
                 "limit_train_batches": 10,
                 "limit_val_batches": 5,
                 "limit_test_batches": 5,
