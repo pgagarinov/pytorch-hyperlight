@@ -7,20 +7,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## [unreleased.Bugfixes] - YYYY-MM-DD
 
 ### Added
- - MLDevEnv: README.md now contains a few examples of using mlenvtool directly 
- 
+
 ### Changed
- - MLDevEnv is moved to https://github.com/pgagarinov/pytorch-ml-devenv
- as a separate project
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+
+## [0.3.0] - 2021-03-22
+
+### Added
+ - MLDevEnv: README.md now contains a few examples of using mlenvtool directly 
+ 
+### Changed
+ - The framework is made compatible with PyTorch 1.8 and PyTorch-Lightning 1.2.4. 
+ - All the regression tests and examples are made sure to pass on version 0.2.1 of [PyTorch MLDevEnv](https://github.com/pgagarinov/pytorch-ml-devenv)     
+
+
+### Removed
+ - MLDevEnv is moved to [PyTorch MLDevEnv](https://github.com/pgagarinov/pytorch-ml-devenv) to make it more re-usable.
+
+### Fixed
  - face_image_classification_gender_hybrid_vision_transformer.ipynb Jupyter notebook example is correct but the output saved inside the notebook contains a stacktrace from out of memory error.
- - validation metrics are now reported separately from test metrics in
- progress bar callback
+ - validation metrics are now reported separately from test metrics in progress bar callback
 
 ## [0.2.12] - 2021-02-17
 
