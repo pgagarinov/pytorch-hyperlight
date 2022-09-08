@@ -25,6 +25,7 @@ from pytorch_lightning.callbacks import (
 
 from pytorch_hyperlight.callbacks.early_stopping import EarlyStoppingWithGracePeriod
 from pytorch_lightning.utilities.cloud_io import load as pl_load
+import pytorch_lightning.core.saving as plsv
 
 from ray.tune.integration.pytorch_lightning import (  # TuneReportCallback,
     TuneReportCheckpointCallback,
@@ -38,6 +39,8 @@ from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import (
     WandBIntegrator,
     DummyWandBIntegrator,
 )
+from pytorch_lightning.loggers.logger import DummyLogger
+
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
@@ -81,7 +84,7 @@ class LitModuleBuilder:
         )
         epoch = ckpt["epoch"]
         # use strict=False by default
-        lmodule = model_class._load_model_state(ckpt, strict=False, **kwargs)
+        lmodule = plsv._load_state(model_class, ckpt, strict=False, **kwargs)
         #
         return lmodule, epoch, ckpt
 
@@ -100,7 +103,7 @@ class BaseRunner:
         if pl_callbacks is None:
             pl_callbacks = []
         if pl_loggers is None:
-            pl_loggers = []
+            pl_loggers = [DummyLogger()]
         self.__experiment_id = experiment_id
         #
         if log2wandb:
@@ -456,7 +459,7 @@ class BaseRunner:
                 monitor=extra_config["metric_to_optimize"],
                 mode=extra_config["metric_opt_mode"],
                 save_top_k=PTL_CHECKPOINT_SAVE_TOP_K,
-                period=PTL_CHECKPOINT_PERIOD,
+                every_n_epochs=PTL_CHECKPOINT_PERIOD,
             )
             pl_callbacks.append(checkpoint_callback)
 

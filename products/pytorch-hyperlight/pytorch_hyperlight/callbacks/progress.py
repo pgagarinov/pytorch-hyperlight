@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pytorch_lightning.callbacks import ProgressBar, ProgressBarBase
+from pytorch_lightning.callbacks.progress.tqdm_progress import TQDMProgressBar
+from pytorch_lightning.callbacks.progress.base import ProgressBarBase
 from pytorch_hyperlight.utils.metric_dict_utils import MetricDictUtils
 from tabulate import tabulate
 from tqdm.autonotebook import tqdm
@@ -48,7 +49,7 @@ def is_in_notebook():
         return False  # Probably standard Python interpreter
 
 
-class LoggingProgressBar(ProgressBar):
+class LoggingProgressBar(TQDMProgressBar):
     # noinspection PyUnusedLocal
     @staticmethod
     def __default_name_metric_transform(stage_list, metric_name):
@@ -97,7 +98,7 @@ class LoggingProgressBar(ProgressBar):
         return self.__f_name_metric_transform
 
     def init_train_tqdm(self):
-        if self.main_progress_bar:
+        if self._main_progress_bar is not None:
             bar = self.main_progress_bar
         else:
             bar = super().init_train_tqdm()
@@ -105,7 +106,7 @@ class LoggingProgressBar(ProgressBar):
 
     def init_test_tqdm(self):
         STAGE_LIST = ["test"]
-        if self.test_progress_bar:
+        if self.test_progress_bar is not None:
             bar = self.test_progress_bar
         else:
             bar = super().init_test_tqdm()
@@ -114,7 +115,7 @@ class LoggingProgressBar(ProgressBar):
         return bar
 
     def init_sanity_tqdm(self) -> tqdm:
-        if self.val_progress_bar:
+        if self._val_progress_bar is not None:
             bar = self.val_progress_bar
         else:
             bar = super().init_sanity_tqdm()
@@ -122,7 +123,7 @@ class LoggingProgressBar(ProgressBar):
 
     def init_validation_tqdm(self):
         STAGE_LIST = ["val"]
-        if self.val_progress_bar:
+        if self._val_progress_bar is not None:
             bar = self.val_progress_bar
         else:
             bar = super().init_validation_tqdm()
@@ -130,9 +131,9 @@ class LoggingProgressBar(ProgressBar):
         bar.set_description(stage_name_pretty)
         return bar
 
-    def __log(self, stage_list, trainer):
+    def __log(self, stage_list, trainer, pl_module):
         metrics_dict = MetricDictUtils.filter_n_round_epoch_metrics(
-            trainer.progress_bar_dict
+            self.get_metrics(trainer, pl_module)
         )
         metrics_dict = MetricDictUtils.filter_by_prefix(metrics_dict, stage_list)
 
@@ -169,11 +170,11 @@ class LoggingProgressBar(ProgressBar):
     def get_metrics_df_list(self):
         return copy.deepcopy(self.__metrics_df_list)
 
-    def on_train_epoch_end(self, trainer, pl_module, outputs):
+    def on_train_epoch_end(self, trainer, pl_module) -> None:
         STAGE_LIST = ["train"]
-        super().on_train_epoch_end(trainer, pl_module, outputs)
-        if not trainer.running_sanity_check:
-            self.__log(STAGE_LIST, trainer)
+        super().on_train_epoch_end(trainer, pl_module)
+        if not trainer.sanity_checking:
+            self.__log(STAGE_LIST, trainer, pl_module)
 
     def on_validation_epoch_end(self, trainer, pl_module):
         pass
@@ -186,15 +187,15 @@ class LoggingProgressBar(ProgressBar):
     def on_test_epoch_end(self, trainer, pl_module):
         STAGE_LIST = ["test"]
         super().on_test_epoch_end(trainer, pl_module)
-        if not trainer.running_sanity_check:
-            self.__log(STAGE_LIST, trainer)
+        if not trainer.sanity_checking:
+            self.__log(STAGE_LIST, trainer, pl_module)
 
     def on_validation_end(self, trainer, pl_module):
         STAGE_LIST = ["val"]
         super(ProgressBarBase, self).on_validation_end(trainer, pl_module)
-        self.main_progress_bar.set_postfix(trainer.progress_bar_dict)
-        if not trainer.running_sanity_check:
-            self.__log(STAGE_LIST, trainer)
+        self.main_progress_bar.set_postfix(self.get_metrics(trainer, pl_module))
+        if not trainer.sanity_checking:
+            self.__log(STAGE_LIST, trainer, pl_module)
 
     def on_train_end(self, trainer, pl_module):
         super(ProgressBarBase, self).on_train_end(trainer, pl_module)

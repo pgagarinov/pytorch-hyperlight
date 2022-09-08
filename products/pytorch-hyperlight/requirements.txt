@@ -1,4 +1,4 @@
-pytorch-lightning == 1.2.*, >=1.2.4
+pytorch-lightning>=1.7.3
 tabulate 
 hyperopt 
 tqdm
@@ -12,8 +12,6 @@ pillow
 matplotlib 
 validators 
 boto3 
-torch 
-torchvision 
 kaggle 
 albumentations
 papermill 

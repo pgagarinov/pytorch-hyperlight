@@ -21,7 +21,7 @@ class TestHappyPathUsage:
         from pytorch_hyperlight import Runner
 
         import pytorch_lightning as pl
-        import pytorch_lightning.metrics as metrics
+        import torchmetrics as metrics
         import torch
 
         # noinspection PyPep8Naming
@@ -117,15 +117,15 @@ class TestHappyPathUsage:
         class LitMetricsCalc(torch.nn.Module):
             def __init__(self, prefix, num_classes):
                 super(LitMetricsCalc, self).__init__()
-                self.acc = metrics.classification.Accuracy()
+                self.acc = metrics.Accuracy()
                 # compute_on_step=True,
-                self.f1 = metrics.classification.F1(
+                self.f1 = metrics.F1Score(
                     num_classes=num_classes, average="macro"
                 )
-                self.rec = metrics.classification.Recall(
+                self.rec = metrics.Recall(
                     num_classes=num_classes, average="macro"
                 )
-                self.prec = metrics.classification.Precision(
+                self.prec = metrics.Precision(
                     num_classes=num_classes, average="macro"
                 )
                 self.prefix = prefix
@@ -168,7 +168,7 @@ class TestHappyPathUsage:
         class LitBoringMNIST(pl.LightningModule):
             def __init__(self, hparams):
                 super().__init__()
-                self.hparams = hparams
+                self._set_hparams(hparams)
                 #
                 n_classes = self.hparams.n_classes
                 #
