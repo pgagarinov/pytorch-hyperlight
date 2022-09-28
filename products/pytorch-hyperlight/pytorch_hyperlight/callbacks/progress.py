@@ -99,15 +99,15 @@ class LoggingProgressBar(TQDMProgressBar):
 
     def init_train_tqdm(self):
         if self._main_progress_bar is not None:
-            bar = self.main_progress_bar
+            bar = self._main_progress_bar
         else:
             bar = super().init_train_tqdm()
         return bar
 
     def init_test_tqdm(self):
         STAGE_LIST = ["test"]
-        if self.test_progress_bar is not None:
-            bar = self.test_progress_bar
+        if self._test_progress_bar is not None:
+            bar = self._test_progress_bar
         else:
             bar = super().init_test_tqdm()
         stage_name_pretty = self.__get_transformed_stage_name_pretty(STAGE_LIST)[0]
@@ -116,7 +116,7 @@ class LoggingProgressBar(TQDMProgressBar):
 
     def init_sanity_tqdm(self) -> tqdm:
         if self._val_progress_bar is not None:
-            bar = self.val_progress_bar
+            bar = self._val_progress_bar
         else:
             bar = super().init_sanity_tqdm()
         return bar
@@ -124,7 +124,7 @@ class LoggingProgressBar(TQDMProgressBar):
     def init_validation_tqdm(self):
         STAGE_LIST = ["val"]
         if self._val_progress_bar is not None:
-            bar = self.val_progress_bar
+            bar = self._val_progress_bar
         else:
             bar = super().init_validation_tqdm()
         stage_name_pretty = self.__get_transformed_stage_name_pretty(STAGE_LIST)[0]

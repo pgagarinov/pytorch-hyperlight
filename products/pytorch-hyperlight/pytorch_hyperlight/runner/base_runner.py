@@ -337,7 +337,7 @@ class BaseRunner:
 
         self.__set_seed(extra_config)
         val_result = trainer.test(
-            lmodule_best, test_dataloaders=val_dataloader, verbose=False
+            lmodule_best, dataloaders=val_dataloader, verbose=False
         )
 
         lprogress_bar_callback.set_name_metric_transform(prev_name_metric_transform)
@@ -352,7 +352,7 @@ class BaseRunner:
     def __test(self, lmodule_best, trainer, extra_config, test_dataloader):
         self.__set_seed(extra_config)
         val_result = trainer.test(
-            lmodule_best, test_dataloaders=test_dataloader, verbose=False
+            lmodule_best, dataloaders=test_dataloader, verbose=False
         )
 
         reval_metrics_dict = MetricDictUtils.filter_by_suffix(val_result[0], "_epoch")

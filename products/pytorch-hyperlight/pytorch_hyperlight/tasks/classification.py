@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import pytorch_lightning as pl
-from pytorch_lightning import metrics
+import torchmetrics as metrics
 import torch
 from abc import abstractmethod
 from transformers import AdamW, get_linear_schedule_with_warmup
@@ -31,7 +31,7 @@ class LitMetricsCalc(torch.nn.Module):
         if "acc" in metric_list:
             metrics_dict["acc"] = metrics.classification.Accuracy()
         if "f1" in metric_list:
-            metrics_dict["f1"] = metrics.classification.F1(
+            metrics_dict["f1"] = metrics.classification.F1Score(
                 num_classes=num_classes, average="macro"
             )
         if "prec" in metric_list:

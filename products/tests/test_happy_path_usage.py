@@ -168,7 +168,7 @@ class TestHappyPathUsage:
         class LitBoringMNIST(pl.LightningModule):
             def __init__(self, hparams):
                 super().__init__()
-                self._set_hparams(hparams)
+                self.save_hyperparameters(hparams)
                 #
                 n_classes = self.hparams.n_classes
                 #
