@@ -448,9 +448,9 @@ class BaseRunner:
             )
             pl_callbacks.append(tune_val_callback)
 
-            TRAINER_KWARG_DICT["progress_bar_refresh_rate"] = 0
-            TRAINER_KWARG_DICT["checkpoint_callback"] = False
-            TRAINER_KWARG_DICT["weights_summary"] = None
+            # TRAINER_KWARG_DICT["progress_bar_refresh_rate"] = 0
+            TRAINER_KWARG_DICT["enable_checkpointing"] = False
+            TRAINER_KWARG_DICT["enable_model_summary"] = False
         else:
             PTL_CHECKPOINT_PERIOD = 1
             PTL_CHECKPOINT_SAVE_TOP_K = 2
