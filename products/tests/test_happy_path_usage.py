@@ -452,6 +452,7 @@ class TestHappyPathUsage:
             plt_ax.grid(False)
 
         def predict_one_sample(model, inputs, device=DEVICE):
+            model.to(device)
             with torch.no_grad():
                 inputs = inputs.to(device)
                 model.eval()

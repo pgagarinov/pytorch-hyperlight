@@ -15,7 +15,6 @@
 import ray
 from ray import tune
 from ray.tune import CLIReporter
-from ray.tune.logger import DEFAULT_LOGGERS
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.suggest.hyperopt import HyperOptSearch
 
@@ -59,8 +58,6 @@ def run_tune_experiment_asha_hyperopt(
     #  freeing computational resources for more promising ones
     hyperopt_search = HyperOptSearch()
 
-    ray_tune_loggers = list(DEFAULT_LOGGERS) + raytune_loggers
-
     analysis = tune.run(
         trainer_func,
         scheduler=asha_scheduler,
@@ -78,7 +75,7 @@ def run_tune_experiment_asha_hyperopt(
         keep_checkpoints_num=tune_config["n_checkpoints_to_keep"],
         name=tune_config["experiment_id"],
         verbose=1,
-        loggers=ray_tune_loggers,
+        callbacks=raytune_loggers,
     )
 
     print("Best hyperparameters found were: ", analysis.best_config)
