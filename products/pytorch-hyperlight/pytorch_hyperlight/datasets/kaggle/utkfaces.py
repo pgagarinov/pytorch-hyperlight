@@ -18,7 +18,7 @@ from pathlib import Path
 import albumentations as albu
 import numpy as np
 import pytorch_lightning as pl
-from albumentations.pytorch import ToTensor
+from albumentations.pytorch.transforms import ToTensorV2
 from kaggle.api.kaggle_api_extended import KaggleApi
 from PIL import Image
 from torch.utils.data import Dataset
@@ -97,7 +97,7 @@ def hard_transforms():
             border_mode=BORDER_REFLECT,
             p=0.5,
         ),
-        albu.IAAPerspective(scale=(0.02, 0.05), p=0.3),
+        albu.Perspective(scale=(0.02, 0.05), p=0.3),
         # Random brightness / contrast with a 30% probability
         albu.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.3),
         # Random gamma changes with a 30% probability
@@ -111,13 +111,13 @@ def hard_transforms():
 
 
 def show_transforms():
-    return [ToTensor()]
+    return [ToTensorV2()]
 
 
 def post_transforms():
     # we use ImageNet image normalization
     # and convert it to torch.Tensor
-    return [NORMALIZE_T, ToTensor()]
+    return [NORMALIZE_T, ToTensorV2()]
 
 
 def compose(transforms_to_compose):
