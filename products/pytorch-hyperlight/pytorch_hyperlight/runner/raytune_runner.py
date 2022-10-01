@@ -16,7 +16,7 @@ import ray
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
-from ray.tune.suggest.hyperopt import HyperOptSearch
+from ray.tune.search.hyperopt import HyperOptSearch
 
 
 def tune_init():

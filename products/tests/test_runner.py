@@ -183,11 +183,13 @@ class TestRunner:
         )
         best_result["metrics"].show_report()
 
-        assert (
-            max(best_result["metrics"].df.epoch)
-            == extra_config_dict["grace_period"]
-            + extra_config_dict["ptl_early_stopping_patience"]
-        )
+        max_epochs = max(best_result["metrics"].df.epoch)\
+
+        expected_epochs  = (extra_config_dict["grace_period"]
+            + extra_config_dict["ptl_early_stopping_patience"])
+        # +1 is required for PTL 1.6, it wasn't needed before
+        assert max_epochs == expected_epochs + 1
+
 
     def test_duplicate_subsequent_runs_same_class_happy_path(
         self, dummy_prerequisites_dict

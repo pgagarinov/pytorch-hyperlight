@@ -1,4 +1,5 @@
-pytorch-lightning>=1.7.3
+pytorch-lightning==1.6.5
+ray_lightning=0.3.0
 tabulate 
 hyperopt 
 tqdm

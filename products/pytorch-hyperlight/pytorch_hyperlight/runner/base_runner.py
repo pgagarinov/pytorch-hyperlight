@@ -39,7 +39,8 @@ from pytorch_hyperlight.integrations.logging.wandb.wandb_logger import (
     WandBIntegrator,
     DummyWandBIntegrator,
 )
-from pytorch_lightning.loggers.logger import DummyLogger
+from pytorch_lightning.loggers.base import DummyLogger
+# PTL 1.7 from pytorch_lightning.loggers.logger import DummyLogger
 
 from pytorch_hyperlight.utils.experiment_trial_namer import ExperimentTrialNamer
 from pytorch_hyperlight.callbacks.progress import LoggingProgressBar
@@ -84,7 +85,8 @@ class LitModuleBuilder:
         )
         epoch = ckpt["epoch"]
         # use strict=False by default
-        lmodule = plsv._load_state(model_class, ckpt, strict=False, **kwargs)
+        # PTL 1.7 lmodule = plsv._load_state(model_class, ckpt, strict=False, **kwargs)
+        lmodule = model_class._load_model_state(ckpt, strict=False, **kwargs)
         #
         return lmodule, epoch, ckpt
 
@@ -269,7 +271,7 @@ class BaseRunner:
             tune_config["batch_size_main"], tune_config["cpu_per_trial"]
         )
 
-        checkpoint_path = os.path.join(analysis.best_checkpoint, "checkpoint.ckpt")
+        checkpoint_path = os.path.join(analysis.best_checkpoint.to_directory(), "checkpoint.ckpt")
 
         lmodule_best, best_epoch = lmodule_builder.load_from_checkpoint(checkpoint_path)
 
@@ -410,14 +412,14 @@ class BaseRunner:
         config = config.copy()
         #
         if is_debug:
-            TRAINER_KWARG_DICT = {
+            trainer_kwarg_dict = {
                 "max_epochs": min(3, config['max_epochs']),
                 "limit_train_batches": 10,
                 "limit_val_batches": 5,
                 "limit_test_batches": 5,
             }
         else:
-            TRAINER_KWARG_DICT = {"max_epochs": config["max_epochs"]}
+            trainer_kwarg_dict = {"max_epochs": config["max_epochs"]}
 
         #
         lr_monitor = LearningRateMonitor(logging_interval="step")
@@ -448,9 +450,9 @@ class BaseRunner:
             )
             pl_callbacks.append(tune_val_callback)
 
-            # TRAINER_KWARG_DICT["progress_bar_refresh_rate"] = 0
-            TRAINER_KWARG_DICT["enable_checkpointing"] = False
-            TRAINER_KWARG_DICT["enable_model_summary"] = False
+            # trainer_kwarg_dict["progress_bar_refresh_rate"] = 0
+            trainer_kwarg_dict["enable_checkpointing"] = False
+            trainer_kwarg_dict["enable_model_summary"] = False
         else:
             PTL_CHECKPOINT_PERIOD = 1
             PTL_CHECKPOINT_SAVE_TOP_K = 2
@@ -463,7 +465,7 @@ class BaseRunner:
             )
             pl_callbacks.append(checkpoint_callback)
 
-        # It is yet to be figured out hot to report training metrics
+        # It is yet to be figured out how to report training metrics
         # (currently only validations metrics are reported).
         # The following line leads to errors
         """
@@ -475,18 +477,28 @@ class BaseRunner:
         """
         #
         is_trainer_determenistic = "seed" in extra_config
+        #
+        gpus_switch = extra_config["gpus"]
+        if gpus_switch == -1:
+            trainer_kwarg_dict['accelerator'] = 'auto'
+        elif gpus_switch == 0:
+            trainer_kwarg_dict['accelerator'] = 'cpu'
+            trainer_kwarg_dict['devices'] = 1
+        else:
+            trainer_kwarg_dict['accelerator'] = 'gpu'
+            trainer_kwarg_dict['devices'] = extra_config['gpu_per_trial']
+        #
         trainer = pl.Trainer(
             deterministic=is_trainer_determenistic,
-            gpus=extra_config["gpus"],
             check_val_every_n_epoch=1,
             # progress_bar_refresh_rate = 0,
             gradient_clip_val=config["gradient_clip_val"],
             precision=extra_config["ptl_precision"],
             callbacks=pl_callbacks,
             logger=pl_loggers,
-            **TRAINER_KWARG_DICT,
+            **trainer_kwarg_dict,
         )
-
+        #
         return trainer
 
     @staticmethod
