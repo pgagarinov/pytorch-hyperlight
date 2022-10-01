@@ -476,7 +476,10 @@ class BaseRunner:
         )
         """
         #
-        is_trainer_determenistic = "seed" in extra_config
+        if 'determenistic' in extra_config:
+            determenistic = extra_config["determenistic"]
+        else:
+            determenistic = None
         #
         gpus_switch = extra_config["gpus"]
         if gpus_switch == -1:
@@ -486,10 +489,10 @@ class BaseRunner:
             trainer_kwarg_dict['devices'] = 1
         else:
             trainer_kwarg_dict['accelerator'] = 'gpu'
-            trainer_kwarg_dict['devices'] = extra_config['gpu_per_trial']
+            trainer_kwarg_dict['devices'] = extra_config['gpus']
         #
         trainer = pl.Trainer(
-            deterministic=is_trainer_determenistic,
+            deterministic=determenistic,
             check_val_every_n_epoch=1,
             # progress_bar_refresh_rate = 0,
             gradient_clip_val=config["gradient_clip_val"],
