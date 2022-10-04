@@ -22,9 +22,19 @@ NOTEBOOK_WORKING_DIR = EXAMPLES_FOLDER / "_notebook_workspace"
 
 
 class TestExampleNotebooks:
+    @pytest.mark.serial
     @pytest.mark.parametrize(
         "file_name",
-        get_notebook_list(EXAMPLES_FOLDER),
+         [t for t in sorted(get_notebook_list(EXAMPLES_FOLDER)) if any([k in str(t) for k in ['bert','transformer']])],
+        ids=lambda p: str(p.relative_to(p.parent.parent).with_suffix("")),
+    )
+    @pytest.mark.forked
+    def test_run_examples(self, file_name):
+        run_notebook(file_name, NOTEBOOK_WORKING_DIR, fast_dev_run=True)
+
+    @pytest.mark.parametrize(
+        "file_name",
+         [t for t in sorted(get_notebook_list(EXAMPLES_FOLDER)) if not any([k in str(t) for k in ['bert','transformer','nst']])],
         ids=lambda p: str(p.relative_to(p.parent.parent).with_suffix("")),
     )
     @pytest.mark.forked
